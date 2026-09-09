@@ -18,23 +18,38 @@ const overlayStack_1 = require("../../utils/overlayStack");
 const Overlay = ({ isOpen, onClose, children, presentacion = 'modal', size = 'md', title, subtitle, footer, closeOnBackdrop = true, closeOnEscape = true, showCloseButton = true, bodyScroll = true, className = '', overlayClassName = '', bodyClassName = 'px-4 py-4 sm:px-6', footerClassName = '', headerClassName = '', ...props }) => {
     const contenedorRef = (0, react_1.useRef)(null);
     const idBase = (0, react_1.useId)();
-    const [zIndex, setZIndex] = (0, react_1.useState)(() => (0, overlayStack_1.siguienteZIndex)());
+    /**
+     * El z-index se pide DURANTE EL RENDER, no en un efecto. Importa el motivo: los efectos de
+     * React corren de hijo a padre dentro de un mismo commit, así que si esta capa nace ya
+     * abierta y anidada dentro de otra que también nace abierta (`{abierto && <ModalBase>
+     * ...<ConfirmModal isOpen /></ModalBase>}`), pedir el z-index en un efecto le daría el
+     * número más alto al padre, no al hijo — exactamente al revés de cómo se ven en pantalla.
+     * El render, en cambio, siempre va padre-antes-que-hijo, así que asignarlo ahí respeta el
+     * orden visual real. `estabaAbierta` guarda si la capa YA estaba abierta en el render
+     * anterior: sólo se pide un z-index nuevo la primera vez que se abre (o al reabrirse tras
+     * haberse cerrado sin desmontar), no en cada render mientras sigue abierta.
+     */
+    const estabaAbierta = (0, react_1.useRef)(false);
+    const zIndexRef = (0, react_1.useRef)(0);
+    if (isOpen && !estabaAbierta.current) {
+        zIndexRef.current = (0, overlayStack_1.siguienteZIndex)();
+    }
+    estabaAbierta.current = isOpen;
+    const zIndex = zIndexRef.current;
     // Un modal de confirmación no ofrece la X: se sale por los botones del pie, que dicen qué
     // pasa con cada opción. Una X al lado de "Cancelar partido" es ambigua.
     const conBotonCerrar = showCloseButton && presentacion !== 'confirmacion';
+    // Registro en la pila: bloqueo de scroll y quién es la capa de arriba para el Escape. El
+    // registro en sí (agregar `zIndex` a un conjunto) no depende del orden en que los efectos
+    // corran — a diferencia de un contador que se incrementa en cada registro, un conjunto llega
+    // al mismo resultado sin importar en qué orden padre e hijo se registren.
     (0, react_1.useEffect)(() => {
         if (!isOpen)
             return;
-        setZIndex((0, overlayStack_1.siguienteZIndex)());
-    }, [isOpen]);
-    // Registro en la pila: bloqueo de scroll y nivel para el Escape.
-    (0, react_1.useEffect)(() => {
-        if (!isOpen)
-            return;
-        const { nivel, darDeBaja } = (0, overlayStack_1.registrarCapa)();
+        const darDeBaja = (0, overlayStack_1.registrarCapa)(zIndex);
         const alPresionar = (e) => {
-            // Sólo la capa de más arriba reacciona a Escape.
-            if (closeOnEscape && e.key === 'Escape' && nivel === (0, overlayStack_1.capasAbiertas)()) {
+            // Sólo la capa de más arriba (mayor z-index entre las montadas) reacciona a Escape.
+            if (closeOnEscape && e.key === 'Escape' && (0, overlayStack_1.esLaCapaDeArriba)(zIndex)) {
                 onClose();
             }
         };
@@ -43,7 +58,10 @@ const Overlay = ({ isOpen, onClose, children, presentacion = 'modal', size = 'md
             document.removeEventListener('keydown', alPresionar);
             darDeBaja();
         };
-    }, [isOpen, closeOnEscape, onClose]);
+        // `zIndex` sólo cambia en el mismo render donde `isOpen` pasa a `true` (ver más arriba), así
+        // que ya dispara este efecto por sí solo; se lista igual para que el linter no lo asuma
+        // desactualizado.
+    }, [isOpen, closeOnEscape, onClose, zIndex]);
     // Foco inicial y trampa de foco dentro de la capa.
     (0, react_1.useEffect)(() => {
         var _a, _b;
@@ -177,7 +195,7 @@ const Overlay = ({ isOpen, onClose, children, presentacion = 'modal', size = 'md
         if (closeOnBackdrop && e.target === e.currentTarget)
             onClose();
     };
-    return (0, react_dom_1.createPortal)((0, jsx_runtime_1.jsx)("div", { className: backdropClasses, style: { zIndex }, onClick: alClickearFondo, children: (0, jsx_runtime_1.jsxs)("div", { className: contenedorClasses, role: "dialog", "aria-modal": "true", "aria-labelledby": title ? `overlay-${idBase}-title` : undefined, "aria-describedby": subtitle ? `overlay-${idBase}-subtitle` : undefined, tabIndex: -1, ref: contenedorRef, ...props, children: [presentacion === 'hoja' && ((0, jsx_runtime_1.jsx)("div", { "aria-hidden": true, className: "mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-gray-300 dark:bg-gray-600" })), (title || subtitle) && ((0, jsx_runtime_1.jsxs)("div", { className: encabezadoClasses, children: [title && ((0, jsx_runtime_1.jsx)("h3", { id: `overlay-${idBase}-title`, className: "text-lg font-semibold text-gray-900 dark:text-white", children: title })), subtitle && ((0, jsx_runtime_1.jsx)("p", { id: `overlay-${idBase}-subtitle`, className: "mt-1 text-sm text-gray-600 dark:text-gray-400", children: subtitle }))] })), (0, jsx_runtime_1.jsx)("div", { className: cuerpoClasses, children: children }), footer && (0, jsx_runtime_1.jsx)("div", { className: pieClasses, children: footer }), conBotonCerrar && ((0, jsx_runtime_1.jsx)("button", { type: "button", onClick: onClose, className: "absolute right-2 top-[calc(env(safe-area-inset-top)+0.5rem)] flex h-11 w-11\n                       items-center justify-center rounded-lg text-gray-400 transition-colors\n                       [touch-action:manipulation] hover:bg-gray-100 hover:text-gray-600\n                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50\n                       dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300\n                       boxed:top-2", "aria-label": "Cerrar", children: (0, jsx_runtime_1.jsx)("svg", { className: "h-6 w-6", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", children: (0, jsx_runtime_1.jsx)("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M6 18L18 6M6 6l12 12" }) }) }))] }) }), document.body);
+    return (0, react_dom_1.createPortal)((0, jsx_runtime_1.jsx)("div", { className: backdropClasses, style: { zIndex }, onClick: alClickearFondo, children: (0, jsx_runtime_1.jsxs)("div", { className: contenedorClasses, role: "dialog", "aria-modal": "true", "aria-labelledby": title ? `overlay-${idBase}-title` : undefined, "aria-describedby": subtitle ? `overlay-${idBase}-subtitle` : undefined, tabIndex: -1, ref: contenedorRef, ...props, children: [presentacion === 'hoja' && ((0, jsx_runtime_1.jsx)("div", { "aria-hidden": true, className: "mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-gray-300 dark:bg-gray-600" })), (title || subtitle) && ((0, jsx_runtime_1.jsxs)("div", { className: encabezadoClasses, children: [title && ((0, jsx_runtime_1.jsx)("h3", { id: `overlay-${idBase}-title`, className: "text-lg font-semibold text-gray-900 dark:text-white", children: title })), subtitle && ((0, jsx_runtime_1.jsx)("p", { id: `overlay-${idBase}-subtitle`, className: "mt-1 text-sm text-gray-600 dark:text-gray-400", children: subtitle }))] })), (0, jsx_runtime_1.jsx)("div", { className: cuerpoClasses, children: children }), footer && (0, jsx_runtime_1.jsx)("div", { className: pieClasses, children: footer }), conBotonCerrar && ((0, jsx_runtime_1.jsx)("button", { type: "button", onClick: onClose, className: "absolute right-2 top-[calc(env(safe-area-inset-top)+0.5rem)] flex h-11 w-11\r\n                       items-center justify-center rounded-lg text-gray-400 transition-colors\r\n                       [touch-action:manipulation] hover:bg-gray-100 hover:text-gray-600\r\n                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50\r\n                       dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300\r\n                       boxed:top-2", "aria-label": "Cerrar", children: (0, jsx_runtime_1.jsx)("svg", { className: "h-6 w-6", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", children: (0, jsx_runtime_1.jsx)("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M6 18L18 6M6 6l12 12" }) }) }))] }) }), document.body);
 };
 exports.default = Overlay;
 //# sourceMappingURL=Overlay.js.map

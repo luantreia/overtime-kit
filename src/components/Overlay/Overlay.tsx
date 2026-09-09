@@ -1,7 +1,7 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { HTMLAttributes, MouseEvent, ReactNode } from 'react';
-import { registrarCapa, siguienteZIndex, capasAbiertas } from '../../utils/overlayStack';
+import { registrarCapa, siguienteZIndex, esLaCapaDeArriba } from '../../utils/overlayStack';
 
 export type OverlaySize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
 
@@ -76,25 +76,41 @@ const Overlay = ({
 }: OverlayProps) => {
   const contenedorRef = useRef<HTMLDivElement | null>(null);
   const idBase = useId();
-  const [zIndex, setZIndex] = useState(() => siguienteZIndex());
+
+  /**
+   * El z-index se pide DURANTE EL RENDER, no en un efecto. Importa el motivo: los efectos de
+   * React corren de hijo a padre dentro de un mismo commit, así que si esta capa nace ya
+   * abierta y anidada dentro de otra que también nace abierta (`{abierto && <ModalBase>
+   * ...<ConfirmModal isOpen /></ModalBase>}`), pedir el z-index en un efecto le daría el
+   * número más alto al padre, no al hijo — exactamente al revés de cómo se ven en pantalla.
+   * El render, en cambio, siempre va padre-antes-que-hijo, así que asignarlo ahí respeta el
+   * orden visual real. `estabaAbierta` guarda si la capa YA estaba abierta en el render
+   * anterior: sólo se pide un z-index nuevo la primera vez que se abre (o al reabrirse tras
+   * haberse cerrado sin desmontar), no en cada render mientras sigue abierta.
+   */
+  const estabaAbierta = useRef(false);
+  const zIndexRef = useRef(0);
+  if (isOpen && !estabaAbierta.current) {
+    zIndexRef.current = siguienteZIndex();
+  }
+  estabaAbierta.current = isOpen;
+  const zIndex = zIndexRef.current;
 
   // Un modal de confirmación no ofrece la X: se sale por los botones del pie, que dicen qué
   // pasa con cada opción. Una X al lado de "Cancelar partido" es ambigua.
   const conBotonCerrar = showCloseButton && presentacion !== 'confirmacion';
 
+  // Registro en la pila: bloqueo de scroll y quién es la capa de arriba para el Escape. El
+  // registro en sí (agregar `zIndex` a un conjunto) no depende del orden en que los efectos
+  // corran — a diferencia de un contador que se incrementa en cada registro, un conjunto llega
+  // al mismo resultado sin importar en qué orden padre e hijo se registren.
   useEffect(() => {
     if (!isOpen) return;
-    setZIndex(siguienteZIndex());
-  }, [isOpen]);
-
-  // Registro en la pila: bloqueo de scroll y nivel para el Escape.
-  useEffect(() => {
-    if (!isOpen) return;
-    const { nivel, darDeBaja } = registrarCapa();
+    const darDeBaja = registrarCapa(zIndex);
 
     const alPresionar = (e: KeyboardEvent) => {
-      // Sólo la capa de más arriba reacciona a Escape.
-      if (closeOnEscape && e.key === 'Escape' && nivel === capasAbiertas()) {
+      // Sólo la capa de más arriba (mayor z-index entre las montadas) reacciona a Escape.
+      if (closeOnEscape && e.key === 'Escape' && esLaCapaDeArriba(zIndex)) {
         onClose();
       }
     };
@@ -104,7 +120,10 @@ const Overlay = ({
       document.removeEventListener('keydown', alPresionar);
       darDeBaja();
     };
-  }, [isOpen, closeOnEscape, onClose]);
+    // `zIndex` sólo cambia en el mismo render donde `isOpen` pasa a `true` (ver más arriba), así
+    // que ya dispara este efecto por sí solo; se lista igual para que el linter no lo asuma
+    // desactualizado.
+  }, [isOpen, closeOnEscape, onClose, zIndex]);
 
   // Foco inicial y trampa de foco dentro de la capa.
   useEffect(() => {
