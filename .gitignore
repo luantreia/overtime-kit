@@ -1,0 +1,8 @@
+node_modules
+*.tsbuildinfo
+
+# dist SÍ se versiona a propósito: las apps instalan el kit por URL de git y npm no compila nada
+# al clonar un repo sin script `prepare`. Tener el build commiteado hace que instalar sea sólo un
+# clone — sin toolchain de TypeScript en los builds de Vercel ni de Render, y sin un paso más que
+# pueda romper un deploy. La contra es acordarse de correr `npm run build` antes de taguear; el
+# README lo dice y el flujo de release está en un solo comando.
