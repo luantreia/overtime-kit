@@ -9,7 +9,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EstadoAprobacion = exports.useConfirm = exports.ConfirmProvider = exports.useToast = exports.ToastProvider = exports.capasAbiertas = exports.getNextModalZIndex = exports.siguienteZIndex = exports.ErrorMessage = exports.EmptyState = exports.tabPanelId = exports.tabId = exports.TabPanel = exports.Tabs = exports.Spinner = exports.Table = exports.Card = exports.Toggle = exports.Textarea = exports.Select = exports.Input = exports.Badge = exports.Button = exports.ConfirmModal = exports.ModalBase = exports.Modal = exports.Overlay = void 0;
+exports.DataTable = exports.EstadoAprobacion = exports.useConfirm = exports.ConfirmProvider = exports.useToast = exports.ToastProvider = exports.capasAbiertas = exports.getNextModalZIndex = exports.siguienteZIndex = exports.ErrorMessage = exports.EmptyState = exports.tabPanelId = exports.tabId = exports.TabPanel = exports.Tabs = exports.Spinner = exports.Table = exports.Card = exports.Toggle = exports.Textarea = exports.Select = exports.Input = exports.Badge = exports.Button = exports.ConfirmModal = exports.ModalBase = exports.Modal = exports.Overlay = void 0;
 // La primitiva de capa. Todo lo nuevo se escribe con ésta.
 var Overlay_1 = require("./components/Overlay/Overlay");
 Object.defineProperty(exports, "Overlay", { enumerable: true, get: function () { return __importDefault(Overlay_1).default; } });
@@ -70,4 +70,8 @@ Object.defineProperty(exports, "useConfirm", { enumerable: true, get: function (
 // Estado de un cambio que pasa por aprobación, igual en todas las apps.
 var EstadoAprobacion_1 = require("./components/EstadoAprobacion/EstadoAprobacion");
 Object.defineProperty(exports, "EstadoAprobacion", { enumerable: true, get: function () { return __importDefault(EstadoAprobacion_1).default; } });
+// Tabla con columnas tipadas, orden, paginación, carga/error/vacío y tarjetas en mobile.
+// Reemplaza los `<table>` escritos a mano; `Table` queda por compatibilidad.
+var DataTable_1 = require("./components/DataTable/DataTable");
+Object.defineProperty(exports, "DataTable", { enumerable: true, get: function () { return __importDefault(DataTable_1).default; } });
 //# sourceMappingURL=index.js.map

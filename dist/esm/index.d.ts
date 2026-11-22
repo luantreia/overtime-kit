@@ -40,4 +40,6 @@ export { ConfirmProvider, useConfirm } from './components/Confirm/ConfirmProvide
 export type { ConfirmOptions } from './components/Confirm/ConfirmProvider';
 export { default as EstadoAprobacion } from './components/EstadoAprobacion/EstadoAprobacion';
 export type { EstadoAprobacionProps, EstadoAprobacionValor } from './components/EstadoAprobacion/EstadoAprobacion';
+export { default as DataTable } from './components/DataTable/DataTable';
+export type { DataTableProps, DataTableColumn, DataTableSort } from './components/DataTable/DataTable';
 //# sourceMappingURL=index.d.ts.map

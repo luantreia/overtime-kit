@@ -63,3 +63,8 @@ export type { ConfirmOptions } from './components/Confirm/ConfirmProvider';
 // Estado de un cambio que pasa por aprobación, igual en todas las apps.
 export { default as EstadoAprobacion } from './components/EstadoAprobacion/EstadoAprobacion';
 export type { EstadoAprobacionProps, EstadoAprobacionValor } from './components/EstadoAprobacion/EstadoAprobacion';
+
+// Tabla con columnas tipadas, orden, paginación, carga/error/vacío y tarjetas en mobile.
+// Reemplaza los `<table>` escritos a mano; `Table` queda por compatibilidad.
+export { default as DataTable } from './components/DataTable/DataTable';
+export type { DataTableProps, DataTableColumn, DataTableSort } from './components/DataTable/DataTable';
