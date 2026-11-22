@@ -103,6 +103,42 @@ puente, no el destino.
 `EmptyState`, `ErrorMessage`. Estos ya estaban **idénticos byte a byte** en las cinco apps que los
 tenían: acá sólo dejan de estar duplicados.
 
+### `Tabs` — pestañas
+
+Reemplaza las tiras de pestañas escritas a mano (había en 5 de las 6 apps, y sólo una tenía
+`role="tab"`). Trae el patrón de teclado de WAI-ARIA: ← → recorren, Home/End van a los extremos,
+Tab entra a la pestaña activa y sale.
+
+**Es controlado a propósito**: no decide dónde vive la pestaña activa. En una página va en la URL,
+para que se pueda linkear, recargar y volver con "atrás". Adentro de un modal es estado local.
+
+```tsx
+import { Tabs, TabPanel } from 'overtime-kit';
+
+// Página: la pestaña en ?tab=
+const tab = searchParams.get('tab') ?? 'estructura';
+<Tabs
+  aria-label="Secciones de la competencia"
+  idBase="competencia"
+  items={[{ id: 'general', label: 'General' }, { id: 'estructura', label: 'Temporadas/Fases' }]}
+  value={tab}
+  onChange={(t) => setSearchParams({ tab: t }, { replace: true })}
+/>
+{tab === 'general' && <TabPanel idBase="competencia" id="general">…</TabPanel>}
+
+// Modal o toggle de vista: estado local
+<Tabs aria-label="Vista" variante="segmentado" size="sm" items={vistas} value={vista} onChange={setVista} />
+```
+
+| `variante`   | para qué |
+|---|---|
+| `pildora`    | navegación de página. Por defecto. |
+| `segmentado` | pocas opciones que se reparten el ancho, o alternar vistas (Lista / Calendario). |
+| `subrayado`  | listados densos, estilo panel de admin. |
+
+`TabPanel` es opcional: solo conecta el panel con su pestaña para el lector de pantalla
+(`aria-controls` / `aria-labelledby`). Se renderiza solo el de la pestaña activa.
+
 ## Desarrollo
 
 ```bash

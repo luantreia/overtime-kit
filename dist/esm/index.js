@@ -22,6 +22,9 @@ export { default as Toggle } from './components/Toggle/Toggle';
 export { default as Card } from './components/Card/Card';
 export { default as Table } from './components/Table/Table';
 export { default as Spinner } from './components/Spinner/Spinner';
+// Navegación entre secciones. Controlado: la página decide si la pestaña vive en la URL (?tab=)
+// o en estado local (adentro de un modal).
+export { default as Tabs, TabPanel, tabId, tabPanelId } from './components/Tabs/Tabs';
 // Estados de una colección.
 export { default as EmptyState } from './components/EmptyState/EmptyState';
 export { default as ErrorMessage } from './components/ErrorMessage/ErrorMessage';

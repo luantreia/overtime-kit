@@ -20,6 +20,8 @@ export { default as Toggle } from './components/Toggle/Toggle';
 export { default as Card } from './components/Card/Card';
 export { default as Table } from './components/Table/Table';
 export { default as Spinner } from './components/Spinner/Spinner';
+export { default as Tabs, TabPanel, tabId, tabPanelId } from './components/Tabs/Tabs';
+export type { TabsProps, TabItem, TabsVariante, TabsSize, TabPanelProps } from './components/Tabs/Tabs';
 export { default as EmptyState } from './components/EmptyState/EmptyState';
 export type { EmptyStateProps } from './components/EmptyState/EmptyState';
 export { default as ErrorMessage } from './components/ErrorMessage/ErrorMessage';

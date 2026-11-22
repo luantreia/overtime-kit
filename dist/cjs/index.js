@@ -9,7 +9,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EstadoAprobacion = exports.useConfirm = exports.ConfirmProvider = exports.useToast = exports.ToastProvider = exports.capasAbiertas = exports.getNextModalZIndex = exports.siguienteZIndex = exports.ErrorMessage = exports.EmptyState = exports.Spinner = exports.Table = exports.Card = exports.Toggle = exports.Textarea = exports.Select = exports.Input = exports.Badge = exports.Button = exports.ConfirmModal = exports.ModalBase = exports.Modal = exports.Overlay = void 0;
+exports.EstadoAprobacion = exports.useConfirm = exports.ConfirmProvider = exports.useToast = exports.ToastProvider = exports.capasAbiertas = exports.getNextModalZIndex = exports.siguienteZIndex = exports.ErrorMessage = exports.EmptyState = exports.tabPanelId = exports.tabId = exports.TabPanel = exports.Tabs = exports.Spinner = exports.Table = exports.Card = exports.Toggle = exports.Textarea = exports.Select = exports.Input = exports.Badge = exports.Button = exports.ConfirmModal = exports.ModalBase = exports.Modal = exports.Overlay = void 0;
 // La primitiva de capa. Todo lo nuevo se escribe con ésta.
 var Overlay_1 = require("./components/Overlay/Overlay");
 Object.defineProperty(exports, "Overlay", { enumerable: true, get: function () { return __importDefault(Overlay_1).default; } });
@@ -41,6 +41,13 @@ var Table_1 = require("./components/Table/Table");
 Object.defineProperty(exports, "Table", { enumerable: true, get: function () { return __importDefault(Table_1).default; } });
 var Spinner_1 = require("./components/Spinner/Spinner");
 Object.defineProperty(exports, "Spinner", { enumerable: true, get: function () { return __importDefault(Spinner_1).default; } });
+// Navegación entre secciones. Controlado: la página decide si la pestaña vive en la URL (?tab=)
+// o en estado local (adentro de un modal).
+var Tabs_1 = require("./components/Tabs/Tabs");
+Object.defineProperty(exports, "Tabs", { enumerable: true, get: function () { return __importDefault(Tabs_1).default; } });
+Object.defineProperty(exports, "TabPanel", { enumerable: true, get: function () { return Tabs_1.TabPanel; } });
+Object.defineProperty(exports, "tabId", { enumerable: true, get: function () { return Tabs_1.tabId; } });
+Object.defineProperty(exports, "tabPanelId", { enumerable: true, get: function () { return Tabs_1.tabPanelId; } });
 // Estados de una colección.
 var EmptyState_1 = require("./components/EmptyState/EmptyState");
 Object.defineProperty(exports, "EmptyState", { enumerable: true, get: function () { return __importDefault(EmptyState_1).default; } });
