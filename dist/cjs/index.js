@@ -9,7 +9,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.capasAbiertas = exports.getNextModalZIndex = exports.siguienteZIndex = exports.ErrorMessage = exports.EmptyState = exports.Spinner = exports.Table = exports.Card = exports.Toggle = exports.Textarea = exports.Select = exports.Input = exports.Badge = exports.Button = exports.ConfirmModal = exports.ModalBase = exports.Modal = exports.Overlay = void 0;
+exports.EstadoAprobacion = exports.useConfirm = exports.ConfirmProvider = exports.useToast = exports.ToastProvider = exports.capasAbiertas = exports.getNextModalZIndex = exports.siguienteZIndex = exports.ErrorMessage = exports.EmptyState = exports.Spinner = exports.Table = exports.Card = exports.Toggle = exports.Textarea = exports.Select = exports.Input = exports.Badge = exports.Button = exports.ConfirmModal = exports.ModalBase = exports.Modal = exports.Overlay = void 0;
 // La primitiva de capa. Todo lo nuevo se escribe con ésta.
 var Overlay_1 = require("./components/Overlay/Overlay");
 Object.defineProperty(exports, "Overlay", { enumerable: true, get: function () { return __importDefault(Overlay_1).default; } });
@@ -52,4 +52,15 @@ var overlayStack_1 = require("./utils/overlayStack");
 Object.defineProperty(exports, "siguienteZIndex", { enumerable: true, get: function () { return overlayStack_1.siguienteZIndex; } });
 Object.defineProperty(exports, "getNextModalZIndex", { enumerable: true, get: function () { return overlayStack_1.getNextModalZIndex; } });
 Object.defineProperty(exports, "capasAbiertas", { enumerable: true, get: function () { return overlayStack_1.capasAbiertas; } });
+// Feedback. Misma API que las seis copias de ToastProvider que vivían en cada app.
+var ToastProvider_1 = require("./components/Toast/ToastProvider");
+Object.defineProperty(exports, "ToastProvider", { enumerable: true, get: function () { return ToastProvider_1.ToastProvider; } });
+Object.defineProperty(exports, "useToast", { enumerable: true, get: function () { return ToastProvider_1.useToast; } });
+// `await confirm({...})` en vez de useState + <ConfirmModal> en cada pantalla.
+var ConfirmProvider_1 = require("./components/Confirm/ConfirmProvider");
+Object.defineProperty(exports, "ConfirmProvider", { enumerable: true, get: function () { return ConfirmProvider_1.ConfirmProvider; } });
+Object.defineProperty(exports, "useConfirm", { enumerable: true, get: function () { return ConfirmProvider_1.useConfirm; } });
+// Estado de un cambio que pasa por aprobación, igual en todas las apps.
+var EstadoAprobacion_1 = require("./components/EstadoAprobacion/EstadoAprobacion");
+Object.defineProperty(exports, "EstadoAprobacion", { enumerable: true, get: function () { return __importDefault(EstadoAprobacion_1).default; } });
 //# sourceMappingURL=index.js.map

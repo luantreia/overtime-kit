@@ -47,3 +47,14 @@ export type { SpinnerProps } from './components/Spinner/Spinner';
 // Pila de capas. La exportamos porque los overlays hechos a mano que todavía no migraron
 // necesitan pedir su z-index de la misma pila para apilarse bien contra los que sí.
 export { siguienteZIndex, getNextModalZIndex, capasAbiertas } from './utils/overlayStack';
+
+// Feedback. Misma API que las seis copias de ToastProvider que vivían en cada app.
+export { ToastProvider, useToast } from './components/Toast/ToastProvider';
+export type { Toast, ToastType, ToastContextValue } from './components/Toast/ToastProvider';
+// `await confirm({...})` en vez de useState + <ConfirmModal> en cada pantalla.
+export { ConfirmProvider, useConfirm } from './components/Confirm/ConfirmProvider';
+export type { ConfirmOptions } from './components/Confirm/ConfirmProvider';
+
+// Estado de un cambio que pasa por aprobación, igual en todas las apps.
+export { default as EstadoAprobacion } from './components/EstadoAprobacion/EstadoAprobacion';
+export type { EstadoAprobacionProps, EstadoAprobacionValor } from './components/EstadoAprobacion/EstadoAprobacion';
