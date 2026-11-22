@@ -1,5 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { ChevronDownIcon, ChevronUpIcon, ChevronUpDownIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 const comparar = (a, b) => {
     if (a == null && b == null)
@@ -15,6 +15,12 @@ const comparar = (a, b) => {
     return String(a).localeCompare(String(b), 'es', { numeric: true, sensitivity: 'base' });
 };
 const ALIGN = { left: 'text-left', right: 'text-right', center: 'text-center' };
+const VISIBLE_FROM = {
+    sm: 'hidden sm:table-cell',
+    md: 'hidden md:table-cell',
+    lg: 'hidden lg:table-cell',
+    xl: 'hidden xl:table-cell',
+};
 /**
  * La tabla de las seis apps. Existe porque había `<table>` escrito a mano en ~80 archivos, cada
  * uno con su propio orden, paginación, estado vacío y scroll en mobile (o sin ninguno de ellos),
@@ -25,7 +31,26 @@ const ALIGN = { left: 'text-left', right: 'text-right', center: 'text-center' };
  * Qué NO resuelve: filtros y búsqueda, que dependen de cada pantalla — van en `toolbar` y la app
  * le pasa `data` ya filtrada.
  */
-function DataTable({ columns, data, rowKey, loading = false, error, onRetry, empty, onRowClick, caption, toolbar, pageSize = 25, sort: sortProp, defaultSort = null, onSortChange, page: pageProp, onPageChange, mobile = 'cards', }) {
+function DataTable({ columns, data, rowKey, loading = false, error, onRetry, empty, onRowClick, caption, toolbar, pageSize = 25, sort: sortProp, defaultSort = null, onSortChange, page: pageProp, onPageChange, mobile = 'cards', rowClassName, stickyHeader = false, stickyFirstColumn = false, maxHeightClassName = '', renderExpanded, }) {
+    const [expandidas, setExpandidas] = useState(() => new Set());
+    const alternarExpandida = (key) => setExpandidas((prev) => {
+        const next = new Set(prev);
+        if (next.has(key))
+            next.delete(key);
+        else
+            next.add(key);
+        return next;
+    });
+    const celdaClase = (col, i, fondo) => {
+        var _a, _b;
+        return [
+            ALIGN[(_a = col.align) !== null && _a !== void 0 ? _a : 'left'],
+            (_b = col.className) !== null && _b !== void 0 ? _b : '',
+            col.visibleFrom ? VISIBLE_FROM[col.visibleFrom] : '',
+            stickyFirstColumn && i === 0 ? `sticky left-0 z-[1] ${fondo}` : '',
+        ].join(' ');
+    };
+    const hayFooter = columns.some((c) => c.footer);
     const [sortInterno, setSortInterno] = useState(defaultSort);
     const [pageInterna, setPageInterna] = useState(1);
     const sort = sortProp !== undefined ? sortProp : sortInterno;
@@ -85,23 +110,40 @@ function DataTable({ columns, data, rowKey, loading = false, error, onRetry, emp
             tabIndex: 0,
         }
         : {};
-    const tabla = (_jsxs("table", { className: "w-full text-sm", children: [_jsx("caption", { className: "sr-only", children: caption }), _jsx("thead", { className: "border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600", children: _jsx("tr", { children: columns.map((col) => {
-                        var _a, _b;
+    /** Botón de expandir, dentro de la primera celda (así no corre la columna fija). */
+    const botonExpandir = (fila) => {
+        if (!renderExpanded || renderExpanded(fila) == null)
+            return null;
+        const key = rowKey(fila);
+        const abierta = expandidas.has(key);
+        return (_jsx("button", { type: "button", onClick: (e) => {
+                e.stopPropagation();
+                alternarExpandida(key);
+            }, "aria-expanded": abierta, "aria-label": abierta ? 'Ocultar detalle' : 'Ver detalle', className: "-my-1 mr-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md align-middle text-slate-500 hover:bg-slate-100", children: _jsx(ChevronDownIcon, { className: `h-4 w-4 transition-transform ${abierta ? 'rotate-180' : ''}`, "aria-hidden": "true" }) }));
+    };
+    const tabla = (_jsxs("table", { className: "w-full text-sm", children: [_jsx("caption", { className: "sr-only", children: caption }), _jsx("thead", { className: `border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600 ${stickyHeader ? 'sticky top-0 z-[2]' : ''}`, children: _jsx("tr", { children: columns.map((col, i) => {
                         const activa = (sort === null || sort === void 0 ? void 0 : sort.columna) === col.id;
                         const ariaSort = activa ? (sort.direccion === 'asc' ? 'ascending' : 'descending') : col.sortValue ? 'none' : undefined;
                         const Icono = !activa ? ChevronUpDownIcon : sort.direccion === 'asc' ? ChevronUpIcon : ChevronDownIcon;
-                        return (_jsx("th", { scope: "col", "aria-sort": ariaSort, className: `px-3 py-2 ${ALIGN[(_a = col.align) !== null && _a !== void 0 ? _a : 'left']} ${(_b = col.className) !== null && _b !== void 0 ? _b : ''}`, children: col.sortValue ? (_jsxs("button", { type: "button", onClick: () => alternarOrden(col), className: `inline-flex items-center gap-1 rounded uppercase hover:text-slate-900 ${activa ? 'text-slate-900' : ''}`, children: [col.header, _jsx(Icono, { className: `h-3.5 w-3.5 ${activa ? '' : 'opacity-40'}`, "aria-hidden": "true" })] })) : (col.header) }, col.id));
+                        return (_jsx("th", { scope: "col", "aria-sort": ariaSort, className: `px-3 py-2 ${celdaClase(col, i, 'bg-slate-50')}`, children: col.sortValue ? (_jsxs("button", { type: "button", onClick: () => alternarOrden(col), className: `inline-flex items-center gap-1 rounded uppercase hover:text-slate-900 ${activa ? 'text-slate-900' : ''}`, children: [col.header, _jsx(Icono, { className: `h-3.5 w-3.5 ${activa ? '' : 'opacity-40'}`, "aria-hidden": "true" })] })) : (col.header) }, col.id));
                     }) }) }), _jsx("tbody", { className: "divide-y divide-slate-100 bg-white", children: loading
-                    ? Array.from({ length: Math.min(pageSize || 5, 5) }).map((_, i) => (_jsx("tr", { "aria-hidden": "true", children: columns.map((col) => (_jsx("td", { className: "px-3 py-3", children: _jsx("div", { className: "h-4 w-3/4 animate-pulse rounded bg-slate-200" }) }, col.id))) }, `sk-${i}`)))
-                    : visibles.map((fila) => (_jsx("tr", { className: clickable, ...filaProps(fila), children: columns.map((col) => {
-                            var _a, _b;
-                            return (_jsx("td", { className: `px-3 py-2.5 text-slate-800 ${ALIGN[(_a = col.align) !== null && _a !== void 0 ? _a : 'left']} ${(_b = col.className) !== null && _b !== void 0 ? _b : ''}`, children: col.cell(fila) }, col.id));
-                        }) }, rowKey(fila)))) })] }));
+                    ? Array.from({ length: Math.min(pageSize || 5, 5) }).map((_, i) => (_jsx("tr", { "aria-hidden": "true", children: columns.map((col, i) => (_jsx("td", { className: `px-3 py-3 ${celdaClase(col, i, 'bg-white')}`, children: _jsx("div", { className: "h-4 w-3/4 animate-pulse rounded bg-slate-200" }) }, col.id))) }, `sk-${i}`)))
+                    : visibles.map((fila) => {
+                        const key = rowKey(fila);
+                        // La celda fija hereda el fondo de la fila (bg-inherit): sin fondo propio en la fila,
+                        // el contenido que pasa por debajo al hacer scroll se vería a través.
+                        const extra = (rowClassName === null || rowClassName === void 0 ? void 0 : rowClassName(fila)) || 'bg-white';
+                        const detalle = renderExpanded && expandidas.has(key) ? renderExpanded(fila) : null;
+                        return (_jsxs(Fragment, { children: [_jsx("tr", { className: `${clickable} ${extra}`, ...filaProps(fila), children: columns.map((col, i) => (_jsxs("td", { className: `px-3 py-2.5 text-slate-800 ${celdaClase(col, i, 'bg-inherit')}`, children: [i === 0 ? botonExpandir(fila) : null, col.cell(fila)] }, col.id))) }), detalle != null ? (_jsx("tr", { className: "bg-slate-50/60", children: _jsx("td", { colSpan: columns.length, className: "px-3 py-3", children: detalle }) })) : null] }, key));
+                    }) }), hayFooter && !loading ? (_jsx("tfoot", { className: "border-t-2 border-slate-200 bg-slate-50 font-semibold text-slate-900", children: _jsx("tr", { children: columns.map((col, i) => (_jsx("td", { className: `px-3 py-2 ${celdaClase(col, i, 'bg-slate-50')}`, children: col.footer ? col.footer(ordenadas) : null }, col.id))) }) })) : null] }));
     const tarjetas = (_jsx("ul", { className: "divide-y divide-slate-100 bg-white", "aria-label": caption, children: loading
             ? Array.from({ length: 3 }).map((_, i) => (_jsxs("li", { className: "space-y-2 p-3", "aria-hidden": "true", children: [_jsx("div", { className: "h-4 w-1/2 animate-pulse rounded bg-slate-200" }), _jsx("div", { className: "h-3 w-3/4 animate-pulse rounded bg-slate-200" })] }, `skm-${i}`)))
             : visibles.map((fila) => {
+                var _a;
                 const [principal, ...resto] = columns.filter((c) => !c.hideOnMobile);
-                return (_jsxs("li", { className: `p-3 ${clickable}`, ...filaProps(fila), children: [principal ? _jsx("div", { className: "font-semibold text-slate-900", children: principal.cell(fila) }) : null, resto.length > 0 ? (_jsx("dl", { className: "mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-sm", children: resto.map((col) => (_jsxs("div", { className: "min-w-0", children: [_jsx("dt", { className: "text-xs text-slate-500", children: col.header }), _jsx("dd", { className: "truncate text-slate-800", children: col.cell(fila) })] }, col.id))) })) : null] }, rowKey(fila)));
+                const key = rowKey(fila);
+                const detalle = renderExpanded && expandidas.has(key) ? renderExpanded(fila) : null;
+                return (_jsxs("li", { className: `p-3 ${clickable} ${(_a = rowClassName === null || rowClassName === void 0 ? void 0 : rowClassName(fila)) !== null && _a !== void 0 ? _a : ''}`, ...filaProps(fila), children: [principal ? (_jsxs("div", { className: "flex items-start font-semibold text-slate-900", children: [botonExpandir(fila), _jsx("div", { className: "min-w-0 flex-1", children: principal.cell(fila) })] })) : null, resto.length > 0 ? (_jsx("dl", { className: "mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-sm", children: resto.map((col) => (_jsxs("div", { className: "min-w-0", children: [_jsx("dt", { className: "text-xs text-slate-500", children: col.header }), _jsx("dd", { className: "break-words text-slate-800", children: col.cell(fila) })] }, col.id))) })) : null, detalle != null ? _jsx("div", { className: "mt-2 rounded-lg bg-slate-50 p-2", children: detalle }) : null] }, key));
             }) }));
     let cuerpo;
     if (error && !loading) {
@@ -111,10 +153,10 @@ function DataTable({ columns, data, rowKey, loading = false, error, onRetry, emp
         cuerpo = _jsx("div", { className: "px-4 py-10 text-center text-sm text-slate-600", children: empty });
     }
     else if (mobile === 'cards') {
-        cuerpo = (_jsxs(_Fragment, { children: [_jsx("div", { className: "sm:hidden", children: tarjetas }), _jsx("div", { className: "hidden overflow-x-auto sm:block", children: tabla })] }));
+        cuerpo = (_jsxs(_Fragment, { children: [_jsx("div", { className: "sm:hidden", children: tarjetas }), _jsx("div", { className: `hidden overflow-auto sm:block ${maxHeightClassName}`, children: tabla })] }));
     }
     else {
-        cuerpo = _jsx("div", { className: "overflow-x-auto", children: tabla });
+        cuerpo = _jsx("div", { className: `overflow-auto ${maxHeightClassName}`, children: tabla });
     }
     const mostrarPaginador = !loading && !error && pageSize > 0 && ordenadas.length > pageSize;
     return (_jsxs("div", { className: "overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm", "aria-busy": loading || undefined, children: [toolbar ? _jsx("div", { className: "border-b border-slate-200 p-3", children: toolbar }) : null, cuerpo, mostrarPaginador ? (_jsxs("nav", { "aria-label": "Paginaci\u00F3n", className: "flex items-center justify-between gap-3 border-t border-slate-200 px-3 py-2 text-sm text-slate-600", children: [_jsxs("span", { children: [(paginaSegura - 1) * pageSize + 1, "\u2013", Math.min(paginaSegura * pageSize, ordenadas.length), " de ", ordenadas.length] }), _jsxs("div", { className: "flex gap-2", children: [_jsx("button", { type: "button", onClick: () => setPage(paginaSegura - 1), disabled: paginaSegura <= 1, className: "min-h-[36px] rounded-lg border border-slate-300 px-3 font-medium hover:bg-slate-50 disabled:opacity-40", children: "Anterior" }), _jsx("button", { type: "button", onClick: () => setPage(paginaSegura + 1), disabled: paginaSegura >= totalPaginas, className: "min-h-[36px] rounded-lg border border-slate-300 px-3 font-medium hover:bg-slate-50 disabled:opacity-40", children: "Siguiente" })] })] })) : null] }));

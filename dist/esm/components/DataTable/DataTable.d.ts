@@ -19,6 +19,13 @@ export interface DataTableColumn<T> {
     hideOnMobile?: boolean;
     /** Ancho fijo opcional, en clases de Tailwind (`w-24`). */
     className?: string;
+    /**
+     * En la vista de TABLA, desde qué ancho se muestra la columna (antes queda oculta). Para tablas
+     * anchas que en tablet no entran enteras. Distinto de `hideOnMobile`, que es para las tarjetas.
+     */
+    visibleFrom?: 'sm' | 'md' | 'lg' | 'xl';
+    /** Celda de la fila de totales (`<tfoot>`). Recibe todas las filas, no sólo la página. */
+    footer?: (filas: T[]) => ReactNode;
 }
 export interface DataTableProps<T> {
     columns: DataTableColumn<T>[];
@@ -49,6 +56,21 @@ export interface DataTableProps<T> {
     onPageChange?: (page: number) => void;
     /** `cards` (default): en pantallas chicas cada fila es una tarjeta. `scroll`: tabla con scroll horizontal. */
     mobile?: 'cards' | 'scroll';
+    /** Clases extra por fila (tabla y tarjeta): clasificados, fila propia, seleccionada. */
+    rowClassName?: (fila: T) => string | undefined;
+    /**
+     * Encabezado fijo al hacer scroll vertical. Requiere una altura máxima para el área de scroll:
+     * pasá `maxHeightClassName` (p. ej. `max-h-[70vh]`, escrito en la app para que Tailwind lo genere).
+     */
+    stickyHeader?: boolean;
+    /** Primera columna fija al hacer scroll horizontal (tablas cruzadas con muchas columnas). */
+    stickyFirstColumn?: boolean;
+    maxHeightClassName?: string;
+    /**
+     * Filas expandibles: si devuelve algo, la fila suma un botón para mostrar ese contenido debajo.
+     * Devolvé `null` para las filas que no tienen detalle.
+     */
+    renderExpanded?: (fila: T) => ReactNode | null;
 }
 /**
  * La tabla de las seis apps. Existe porque había `<table>` escrito a mano en ~80 archivos, cada
@@ -60,6 +82,6 @@ export interface DataTableProps<T> {
  * Qué NO resuelve: filtros y búsqueda, que dependen de cada pantalla — van en `toolbar` y la app
  * le pasa `data` ya filtrada.
  */
-declare function DataTable<T>({ columns, data, rowKey, loading, error, onRetry, empty, onRowClick, caption, toolbar, pageSize, sort: sortProp, defaultSort, onSortChange, page: pageProp, onPageChange, mobile, }: DataTableProps<T>): import("react").JSX.Element;
+declare function DataTable<T>({ columns, data, rowKey, loading, error, onRetry, empty, onRowClick, caption, toolbar, pageSize, sort: sortProp, defaultSort, onSortChange, page: pageProp, onPageChange, mobile, rowClassName, stickyHeader, stickyFirstColumn, maxHeightClassName, renderExpanded, }: DataTableProps<T>): import("react").JSX.Element;
 export default DataTable;
 //# sourceMappingURL=DataTable.d.ts.map

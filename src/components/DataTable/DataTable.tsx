@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useMemo, useState, type ReactNode } from 'react';
 import { ChevronDownIcon, ChevronUpIcon, ChevronUpDownIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 export type DataTableSort = { columna: string; direccion: 'asc' | 'desc' } | null;
@@ -19,6 +19,13 @@ export interface DataTableColumn<T> {
   hideOnMobile?: boolean;
   /** Ancho fijo opcional, en clases de Tailwind (`w-24`). */
   className?: string;
+  /**
+   * En la vista de TABLA, desde qué ancho se muestra la columna (antes queda oculta). Para tablas
+   * anchas que en tablet no entran enteras. Distinto de `hideOnMobile`, que es para las tarjetas.
+   */
+  visibleFrom?: 'sm' | 'md' | 'lg' | 'xl';
+  /** Celda de la fila de totales (`<tfoot>`). Recibe todas las filas, no sólo la página. */
+  footer?: (filas: T[]) => ReactNode;
 }
 
 export interface DataTableProps<T> {
@@ -53,6 +60,22 @@ export interface DataTableProps<T> {
 
   /** `cards` (default): en pantallas chicas cada fila es una tarjeta. `scroll`: tabla con scroll horizontal. */
   mobile?: 'cards' | 'scroll';
+
+  /** Clases extra por fila (tabla y tarjeta): clasificados, fila propia, seleccionada. */
+  rowClassName?: (fila: T) => string | undefined;
+  /**
+   * Encabezado fijo al hacer scroll vertical. Requiere una altura máxima para el área de scroll:
+   * pasá `maxHeightClassName` (p. ej. `max-h-[70vh]`, escrito en la app para que Tailwind lo genere).
+   */
+  stickyHeader?: boolean;
+  /** Primera columna fija al hacer scroll horizontal (tablas cruzadas con muchas columnas). */
+  stickyFirstColumn?: boolean;
+  maxHeightClassName?: string;
+  /**
+   * Filas expandibles: si devuelve algo, la fila suma un botón para mostrar ese contenido debajo.
+   * Devolvé `null` para las filas que no tienen detalle.
+   */
+  renderExpanded?: (fila: T) => ReactNode | null;
 }
 
 const comparar = (a: unknown, b: unknown) => {
@@ -65,6 +88,12 @@ const comparar = (a: unknown, b: unknown) => {
 };
 
 const ALIGN = { left: 'text-left', right: 'text-right', center: 'text-center' } as const;
+const VISIBLE_FROM = {
+  sm: 'hidden sm:table-cell',
+  md: 'hidden md:table-cell',
+  lg: 'hidden lg:table-cell',
+  xl: 'hidden xl:table-cell',
+} as const;
 
 /**
  * La tabla de las seis apps. Existe porque había `<table>` escrito a mano en ~80 archivos, cada
@@ -94,7 +123,28 @@ function DataTable<T>({
   page: pageProp,
   onPageChange,
   mobile = 'cards',
+  rowClassName,
+  stickyHeader = false,
+  stickyFirstColumn = false,
+  maxHeightClassName = '',
+  renderExpanded,
 }: DataTableProps<T>) {
+  const [expandidas, setExpandidas] = useState<Set<string>>(() => new Set());
+  const alternarExpandida = (key: string) =>
+    setExpandidas((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  const celdaClase = (col: DataTableColumn<T>, i: number, fondo: string) =>
+    [
+      ALIGN[col.align ?? 'left'],
+      col.className ?? '',
+      col.visibleFrom ? VISIBLE_FROM[col.visibleFrom] : '',
+      stickyFirstColumn && i === 0 ? `sticky left-0 z-[1] ${fondo}` : '',
+    ].join(' ');
+  const hayFooter = columns.some((c) => c.footer);
   const [sortInterno, setSortInterno] = useState<DataTableSort>(defaultSort);
   const [pageInterna, setPageInterna] = useState(1);
   const sort = sortProp !== undefined ? sortProp : sortInterno;
@@ -152,17 +202,42 @@ function DataTable<T>({
         }
       : {};
 
+  /** Botón de expandir, dentro de la primera celda (así no corre la columna fija). */
+  const botonExpandir = (fila: T) => {
+    if (!renderExpanded || renderExpanded(fila) == null) return null;
+    const key = rowKey(fila);
+    const abierta = expandidas.has(key);
+    return (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          alternarExpandida(key);
+        }}
+        aria-expanded={abierta}
+        aria-label={abierta ? 'Ocultar detalle' : 'Ver detalle'}
+        className="-my-1 mr-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md align-middle text-slate-500 hover:bg-slate-100"
+      >
+        <ChevronDownIcon className={`h-4 w-4 transition-transform ${abierta ? 'rotate-180' : ''}`} aria-hidden="true" />
+      </button>
+    );
+  };
+
   const tabla = (
     <table className="w-full text-sm">
       <caption className="sr-only">{caption}</caption>
-      <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
+      <thead
+        className={`border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600 ${
+          stickyHeader ? 'sticky top-0 z-[2]' : ''
+        }`}
+      >
         <tr>
-          {columns.map((col) => {
+          {columns.map((col, i) => {
             const activa = sort?.columna === col.id;
             const ariaSort = activa ? (sort!.direccion === 'asc' ? 'ascending' : 'descending') : col.sortValue ? 'none' : undefined;
             const Icono = !activa ? ChevronUpDownIcon : sort!.direccion === 'asc' ? ChevronUpIcon : ChevronDownIcon;
             return (
-              <th key={col.id} scope="col" aria-sort={ariaSort} className={`px-3 py-2 ${ALIGN[col.align ?? 'left']} ${col.className ?? ''}`}>
+              <th key={col.id} scope="col" aria-sort={ariaSort} className={`px-3 py-2 ${celdaClase(col, i, 'bg-slate-50')}`}>
                 {col.sortValue ? (
                   <button
                     type="button"
@@ -184,23 +259,51 @@ function DataTable<T>({
         {loading
           ? Array.from({ length: Math.min(pageSize || 5, 5) }).map((_, i) => (
               <tr key={`sk-${i}`} aria-hidden="true">
-                {columns.map((col) => (
-                  <td key={col.id} className="px-3 py-3">
+                {columns.map((col, i) => (
+                  <td key={col.id} className={`px-3 py-3 ${celdaClase(col, i, 'bg-white')}`}>
                     <div className="h-4 w-3/4 animate-pulse rounded bg-slate-200" />
                   </td>
                 ))}
               </tr>
             ))
-          : visibles.map((fila) => (
-              <tr key={rowKey(fila)} className={clickable} {...filaProps(fila)}>
-                {columns.map((col) => (
-                  <td key={col.id} className={`px-3 py-2.5 text-slate-800 ${ALIGN[col.align ?? 'left']} ${col.className ?? ''}`}>
-                    {col.cell(fila)}
-                  </td>
-                ))}
-              </tr>
-            ))}
+          : visibles.map((fila) => {
+              const key = rowKey(fila);
+              // La celda fija hereda el fondo de la fila (bg-inherit): sin fondo propio en la fila,
+              // el contenido que pasa por debajo al hacer scroll se vería a través.
+              const extra = rowClassName?.(fila) || 'bg-white';
+              const detalle = renderExpanded && expandidas.has(key) ? renderExpanded(fila) : null;
+              return (
+                <Fragment key={key}>
+                  <tr className={`${clickable} ${extra}`} {...filaProps(fila)}>
+                    {columns.map((col, i) => (
+                      <td key={col.id} className={`px-3 py-2.5 text-slate-800 ${celdaClase(col, i, 'bg-inherit')}`}>
+                        {i === 0 ? botonExpandir(fila) : null}
+                        {col.cell(fila)}
+                      </td>
+                    ))}
+                  </tr>
+                  {detalle != null ? (
+                    <tr className="bg-slate-50/60">
+                      <td colSpan={columns.length} className="px-3 py-3">
+                        {detalle}
+                      </td>
+                    </tr>
+                  ) : null}
+                </Fragment>
+              );
+            })}
       </tbody>
+      {hayFooter && !loading ? (
+        <tfoot className="border-t-2 border-slate-200 bg-slate-50 font-semibold text-slate-900">
+          <tr>
+            {columns.map((col, i) => (
+              <td key={col.id} className={`px-3 py-2 ${celdaClase(col, i, 'bg-slate-50')}`}>
+                {col.footer ? col.footer(ordenadas) : null}
+              </td>
+            ))}
+          </tr>
+        </tfoot>
+      ) : null}
     </table>
   );
 
@@ -215,19 +318,28 @@ function DataTable<T>({
           ))
         : visibles.map((fila) => {
             const [principal, ...resto] = columns.filter((c) => !c.hideOnMobile);
+            const key = rowKey(fila);
+            const detalle = renderExpanded && expandidas.has(key) ? renderExpanded(fila) : null;
             return (
-              <li key={rowKey(fila)} className={`p-3 ${clickable}`} {...filaProps(fila)}>
-                {principal ? <div className="font-semibold text-slate-900">{principal.cell(fila)}</div> : null}
+              <li key={key} className={`p-3 ${clickable} ${rowClassName?.(fila) ?? ''}`} {...filaProps(fila)}>
+                {principal ? (
+                  <div className="flex items-start font-semibold text-slate-900">
+                    {botonExpandir(fila)}
+                    <div className="min-w-0 flex-1">{principal.cell(fila)}</div>
+                  </div>
+                ) : null}
                 {resto.length > 0 ? (
                   <dl className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
                     {resto.map((col) => (
                       <div key={col.id} className="min-w-0">
                         <dt className="text-xs text-slate-500">{col.header}</dt>
-                        <dd className="truncate text-slate-800">{col.cell(fila)}</dd>
+                        {/* break-words, no truncate: una celda con botones de acción no se puede cortar. */}
+                        <dd className="break-words text-slate-800">{col.cell(fila)}</dd>
                       </div>
                     ))}
                   </dl>
                 ) : null}
+                {detalle != null ? <div className="mt-2 rounded-lg bg-slate-50 p-2">{detalle}</div> : null}
               </li>
             );
           })}
@@ -253,11 +365,11 @@ function DataTable<T>({
     cuerpo = (
       <>
         <div className="sm:hidden">{tarjetas}</div>
-        <div className="hidden overflow-x-auto sm:block">{tabla}</div>
+        <div className={`hidden overflow-auto sm:block ${maxHeightClassName}`}>{tabla}</div>
       </>
     );
   } else {
-    cuerpo = <div className="overflow-x-auto">{tabla}</div>;
+    cuerpo = <div className={`overflow-auto ${maxHeightClassName}`}>{tabla}</div>;
   }
 
   const mostrarPaginador = !loading && !error && pageSize > 0 && ordenadas.length > pageSize;
