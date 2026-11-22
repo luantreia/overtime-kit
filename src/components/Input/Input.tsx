@@ -1,5 +1,5 @@
 // src/components/ui/Input/Input.tsx
-import { forwardRef } from 'react';
+import { forwardRef, useId } from 'react';
 import type { InputHTMLAttributes, ReactNode } from 'react';
 
 type InputVariant = 'default' | 'error' | 'success';
@@ -27,6 +27,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
   id,
   ...props
 }, ref) => {
+  // Sin id explícito, el <label> quedaba sin asociar al control (tocar el texto no enfocaba el
+  // campo y el lector de pantalla no lo nombraba) y todos los mensajes de error compartían id.
+  const autoId = useId();
+  const campoId = id ?? autoId;
   const baseClasses = 'block w-full rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 disabled:bg-gray-50 disabled:cursor-not-allowed dark:disabled:bg-gray-800';
 
   const variants: Record<InputVariant, string> = {
@@ -56,7 +60,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
   return (
     <div className={containerClasses}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label htmlFor={campoId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -66,20 +70,20 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
         ref={ref}
         disabled={disabled}
         className={inputClasses}
-        id={id}
+        id={campoId}
         aria-invalid={error ? 'true' : 'false'}
-        aria-describedby={error ? `${id || 'input'}-error` : helperText ? `${id || 'input'}-helper` : undefined}
+        aria-describedby={error ? `${campoId}-error` : helperText ? `${campoId}-helper` : undefined}
         {...props}
       />
 
       {error && (
-        <p id={`${id || 'input'}-error`} className="mt-1 text-sm text-red-600 dark:text-red-400">
+        <p id={`${campoId}-error`} className="mt-1 text-sm text-red-600 dark:text-red-400">
           {error}
         </p>
       )}
 
       {helperText && !error && (
-        <p id={`${id || 'input'}-helper`} className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p id={`${campoId}-helper`} className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {helperText}
         </p>
       )}
