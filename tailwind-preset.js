@@ -42,7 +42,23 @@ module.exports = {
        * nueva la herede sola; las que ya la tienen en su propio `extend` la pisan con el mismo
        * valor y no cambia nada.
        */
+      /**
+       * Tamaño mínimo para texto con contenido. Las etiquetas en mayúsculas de 8-10px (`text-[10px]`)
+       * eran un estilo repetido en todas las apps y no se leen en un celular al sol. 11px conserva
+       * el look de etiqueta; por debajo de esto, sólo decoración.
+       */
+      fontSize: {
+        '2xs': ['11px', { lineHeight: '16px' }],
+      },
       colors: {
+        /**
+         * Gris para texto secundario sobre fondo claro. Es slate-500: 4,8:1 sobre blanco y 4,6:1
+         * sobre slate-50, así que pasa AA (4,5:1). Sobre slate-100 o más oscuro ya no alcanza (4,3:1):
+         * ahí usar slate-600. `text-slate-400` (2,6:1) y `slate-300` (1,5:1) NO pasan sobre fondo
+         * claro: dejarlos sólo para fondos oscuros (slate-800/900), donde sí funcionan, o para
+         * íconos puramente decorativos.
+         */
+        muted: '#64748b',
         brand: {
           50: '#f5f7ff',
           100: '#ebefff',
