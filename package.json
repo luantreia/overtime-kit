@@ -1,6 +1,6 @@
 {
   "name": "overtime-kit",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Primitivas de UI compartidas por las apps de Overtime",
   "license": "UNLICENSED",
   "private": false,
@@ -17,7 +17,8 @@
     "src",
     "tailwind-preset.js",
     "README.md",
-    "base.css"
+    "base.css",
+    "captura"
   ],
   "scripts": {
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",

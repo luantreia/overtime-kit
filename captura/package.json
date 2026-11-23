@@ -1,0 +1,9 @@
+{
+  "//": "Punto de entrada `overtime-kit/captura` (Capa 1). Carpeta con package.json en vez de `exports` para que lo resuelvan igual webpack 5 y TypeScript 4.9 con moduleResolution node.",
+  "name": "overtime-kit/captura",
+  "private": true,
+  "main": "../dist/cjs/captura/index.js",
+  "module": "../dist/esm/captura/index.js",
+  "types": "../dist/esm/captura/index.d.ts",
+  "sideEffects": false
+}
