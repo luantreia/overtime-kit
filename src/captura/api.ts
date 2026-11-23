@@ -50,6 +50,9 @@ export function crearApiCaptura(fetcher: Fetcher) {
       fetcher<EstadoSet>('/eventos-set/tiempo', json('PUT', { ...ref, tiempo })),
     guardarVideos: (partidoId: string, videos: VideoPartido[]) =>
       fetcher<{ videos: VideoPartido[]; videoUrl: string }>(`/eventos-set/videos/${partidoId}`, json('PUT', { videos })),
+    /** Cámaras propias de una planilla: no tocan el partido; se suman al oficializar. */
+    guardarVideosPlanilla: (planillaId: string, videos: VideoPartido[]) =>
+      fetcher<{ videos: VideoPartido[]; videoUrl: string }>(`/eventos-set/videos-planilla/${planillaId}`, json('PUT', { videos })),
   };
 }
 

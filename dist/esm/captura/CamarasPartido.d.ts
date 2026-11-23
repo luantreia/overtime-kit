@@ -11,7 +11,10 @@ import { type VideoPartido } from './reloj';
  */
 export interface CamarasPartidoProps {
     api: ApiCaptura;
-    partidoId: string;
+    /** Dónde se guardan: las cámaras del partido... */
+    partidoId?: string;
+    /** ...o las propias de una planilla (no toca el partido). Uno de los dos. */
+    planillaId?: string;
     videos: VideoPartido[];
     onGuardado?: (videos: VideoPartido[]) => void;
     soloLectura?: boolean;

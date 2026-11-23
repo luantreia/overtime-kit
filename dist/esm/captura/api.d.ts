@@ -64,6 +64,11 @@ export declare function crearApiCaptura(fetcher: Fetcher): {
         videos: VideoPartido[];
         videoUrl: string;
     }>;
+    /** Cámaras propias de una planilla: no tocan el partido; se suman al oficializar. */
+    guardarVideosPlanilla: (planillaId: string, videos: VideoPartido[]) => Promise<{
+        videos: VideoPartido[];
+        videoUrl: string;
+    }>;
 };
 export type ApiCaptura = ReturnType<typeof crearApiCaptura>;
 //# sourceMappingURL=api.d.ts.map

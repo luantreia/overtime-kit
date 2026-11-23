@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState } from 'react';
 import { camaraAPartido, extraerYoutubeId, formatearSegundos, leerSegundos } from './reloj';
-const CamarasPartido = ({ api, partidoId, videos, onGuardado, soloLectura }) => {
+const CamarasPartido = ({ api, partidoId, planillaId, videos, onGuardado, soloLectura }) => {
     const [abierto, setAbierto] = useState(false);
     const [link, setLink] = useState('');
     const [etiqueta, setEtiqueta] = useState('');
@@ -13,7 +13,9 @@ const CamarasPartido = ({ api, partidoId, videos, onGuardado, soloLectura }) => 
         setGuardando(true);
         setError(null);
         try {
-            const r = await api.guardarVideos(partidoId, lista);
+            if (!planillaId && !partidoId)
+                throw new Error('Falta partidoId o planillaId');
+            const r = planillaId ? await api.guardarVideosPlanilla(planillaId, lista) : await api.guardarVideos(partidoId, lista);
             onGuardado === null || onGuardado === void 0 ? void 0 : onGuardado(r.videos);
             return true;
         }

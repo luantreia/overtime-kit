@@ -12,13 +12,16 @@ import { camaraAPartido, extraerYoutubeId, formatearSegundos, leerSegundos, type
  */
 export interface CamarasPartidoProps {
   api: ApiCaptura;
-  partidoId: string;
+  /** Dónde se guardan: las cámaras del partido... */
+  partidoId?: string;
+  /** ...o las propias de una planilla (no toca el partido). Uno de los dos. */
+  planillaId?: string;
   videos: VideoPartido[];
   onGuardado?: (videos: VideoPartido[]) => void;
   soloLectura?: boolean;
 }
 
-const CamarasPartido: React.FC<CamarasPartidoProps> = ({ api, partidoId, videos, onGuardado, soloLectura }) => {
+const CamarasPartido: React.FC<CamarasPartidoProps> = ({ api, partidoId, planillaId, videos, onGuardado, soloLectura }) => {
   const [abierto, setAbierto] = useState(false);
   const [link, setLink] = useState('');
   const [etiqueta, setEtiqueta] = useState('');
@@ -31,7 +34,8 @@ const CamarasPartido: React.FC<CamarasPartidoProps> = ({ api, partidoId, videos,
     setGuardando(true);
     setError(null);
     try {
-      const r = await api.guardarVideos(partidoId, lista);
+      if (!planillaId && !partidoId) throw new Error('Falta partidoId o planillaId');
+      const r = planillaId ? await api.guardarVideosPlanilla(planillaId, lista) : await api.guardarVideos(partidoId as string, lista);
       onGuardado?.(r.videos);
       return true;
     } catch (e) {

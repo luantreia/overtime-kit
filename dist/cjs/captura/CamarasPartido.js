@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const reloj_1 = require("./reloj");
-const CamarasPartido = ({ api, partidoId, videos, onGuardado, soloLectura }) => {
+const CamarasPartido = ({ api, partidoId, planillaId, videos, onGuardado, soloLectura }) => {
     const [abierto, setAbierto] = (0, react_1.useState)(false);
     const [link, setLink] = (0, react_1.useState)('');
     const [etiqueta, setEtiqueta] = (0, react_1.useState)('');
@@ -15,7 +15,9 @@ const CamarasPartido = ({ api, partidoId, videos, onGuardado, soloLectura }) => 
         setGuardando(true);
         setError(null);
         try {
-            const r = await api.guardarVideos(partidoId, lista);
+            if (!planillaId && !partidoId)
+                throw new Error('Falta partidoId o planillaId');
+            const r = planillaId ? await api.guardarVideosPlanilla(planillaId, lista) : await api.guardarVideos(partidoId, lista);
             onGuardado === null || onGuardado === void 0 ? void 0 : onGuardado(r.videos);
             return true;
         }

@@ -11,6 +11,8 @@ function crearApiCaptura(fetcher) {
         guardarAlineacion: (ref, alineacion) => fetcher('/eventos-set/alineacion', json('PUT', { ...ref, alineacion })),
         guardarTiempo: (ref, tiempo) => fetcher('/eventos-set/tiempo', json('PUT', { ...ref, tiempo })),
         guardarVideos: (partidoId, videos) => fetcher(`/eventos-set/videos/${partidoId}`, json('PUT', { videos })),
+        /** Cámaras propias de una planilla: no tocan el partido; se suman al oficializar. */
+        guardarVideosPlanilla: (planillaId, videos) => fetcher(`/eventos-set/videos-planilla/${planillaId}`, json('PUT', { videos })),
     };
 }
 exports.crearApiCaptura = crearApiCaptura;
