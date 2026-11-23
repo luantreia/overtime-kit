@@ -10,7 +10,7 @@
  * `/api/eventos-set` a través del `fetch` autenticado de cada app (`crearApiCaptura`).
  */
 export { crearApiCaptura } from './api';
-export type { ApiCaptura, Fetcher, RefSet, EstadoSet, TiempoSet, NuevoEvento } from './api';
+export type { ApiCaptura, Fetcher, RefSet, EstadoSet, TiempoSet, NuevoEvento, GanadorSet } from './api';
 export { default as ReproductorPartido } from './ReproductorPartido';
 export type { ReproductorPartidoHandle, ReproductorPartidoProps } from './ReproductorPartido';
 export { default as CapturaSet } from './CapturaSet';

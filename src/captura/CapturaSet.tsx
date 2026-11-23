@@ -403,10 +403,60 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
             ))}
           </ol>
         )}
+        <GanadorSugerido
+          estado={estado}
+          equipos={equipos}
+          soloLectura={soloLectura}
+          guardando={guardando}
+          onAplicar={(g) => void correr(() => api.guardarGanador(refSet, g))}
+        />
         {estado.sync?.sincronizado && (
           <p className="mt-2 text-2xs text-muted">Estadísticas del set actualizadas desde las marcas.</p>
         )}
       </section>
+    </div>
+  );
+};
+
+/**
+ * El ganador que dicen las marcas, contra el cargado. Se aplica con un clic y nunca solo: las
+ * marcas pueden estar incompletas, y el ganador de un set mueve el marcador y la tabla.
+ */
+const GanadorSugerido: React.FC<{
+  estado: EstadoSet;
+  equipos: EquipoCaptura[];
+  soloLectura?: boolean;
+  guardando: boolean;
+  onAplicar: (g: 'local' | 'visitante') => void;
+}> = ({ estado, equipos, soloLectura, guardando, onAplicar }) => {
+  const s = estado.ganadorSugerido;
+  if (!s?.ganador) return null;
+  const nombre = equipos.find((e) => e.id === s.equipo)?.nombre ?? (s.ganador === 'local' ? 'Local' : 'Visitante');
+  const cargado = estado.set.ganadorSet ?? 'pendiente';
+  const coincide = cargado === s.ganador;
+  const por = s.motivo === 'eliminacion' ? 'dejó al rival sin jugadores' : `terminó con más vivos (${s.vivos.local} a ${s.vivos.visitante})`;
+  return (
+    <div className={`mt-3 rounded-lg px-3 py-2 text-sm ${coincide ? 'bg-emerald-50 text-emerald-900' : 'bg-amber-50 text-amber-900'}`}>
+      {coincide ? (
+        <>Ganó <b>{nombre}</b>, como dicen las marcas.</>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          <span>
+            Según las marcas ganó <b>{nombre}</b>: {por}.
+            {cargado !== 'pendiente' && <> Hoy el set dice otra cosa.</>}
+          </span>
+          {!soloLectura && (
+            <button
+              type="button"
+              disabled={guardando}
+              onClick={() => onAplicar(s.ganador as 'local' | 'visitante')}
+              className="rounded-md bg-amber-600 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50"
+            >
+              Marcar ganador a {nombre}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

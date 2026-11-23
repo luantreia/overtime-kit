@@ -17,8 +17,17 @@ export interface TiempoSet {
   confirmado?: boolean;
 }
 
+export type GanadorSet = 'local' | 'visitante' | 'empate' | 'pendiente';
+
 export interface EstadoSet {
-  set: { _id: string; numeroSet: number; tiempo: TiempoSet | null };
+  set: { _id: string; numeroSet: number; tiempo: TiempoSet | null; ganadorSet?: GanadorSet };
+  /** Ganador según las marcas: una sugerencia, no se aplica solo. Opcional en backends viejos. */
+  ganadorSugerido?: {
+    ganador: 'local' | 'visitante' | null;
+    motivo: 'eliminacion' | 'mas_vivos' | null;
+    vivos: { local: number; visitante: number };
+    equipo: string | null;
+  };
   alineacion: { jugador: string; equipo: string }[];
   alineacionCargada: boolean;
   eventos: (Evento & { _id: string })[];
@@ -48,6 +57,8 @@ export function crearApiCaptura(fetcher: Fetcher) {
       fetcher<EstadoSet>('/eventos-set/alineacion', json('PUT', { ...ref, alineacion })),
     guardarTiempo: (ref: RefSet, tiempo: TiempoSet | null) =>
       fetcher<EstadoSet>('/eventos-set/tiempo', json('PUT', { ...ref, tiempo })),
+    guardarGanador: (ref: RefSet, ganadorSet: GanadorSet) =>
+      fetcher<EstadoSet>('/eventos-set/ganador', json('PUT', { ...ref, ganadorSet })),
     guardarVideos: (partidoId: string, videos: VideoPartido[]) =>
       fetcher<{ videos: VideoPartido[]; videoUrl: string }>(`/eventos-set/videos/${partidoId}`, json('PUT', { videos })),
     /** Cámaras propias de una planilla: no tocan el partido; se suman al oficializar. */

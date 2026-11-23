@@ -1,4 +1,4 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { formatearSegundos, leerSegundos } from './reloj';
 import { estaVivo, lineaDeTiempo, MOTIVOS, sugerirReingreso, vivosPorLado, } from './supervivencia';
@@ -166,7 +166,22 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
                             const i = idxEquipo(f.lado);
                             const marcas = estado.eventos.filter((e) => e.jugador === f.id && e.tipo === 'out');
                             return (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("span", { className: `w-28 shrink-0 truncate text-2xs ${TEXTO[i]}`, children: etiquetaJugador(porId.get(f.id)) }), _jsxs("div", { className: "relative h-3 flex-1 rounded bg-slate-100", children: [f.tramos.map(([a, b], k) => (_jsx("i", { className: `absolute inset-y-0 rounded ${COLORES[i]}`, style: { left: pct(a), width: `calc(${pct(b !== null && b !== void 0 ? b : fin)} - ${pct(a)})` } }, k))), marcas.map((m) => (_jsx("button", { type: "button", onClick: () => irA === null || irA === void 0 ? void 0 : irA(m.t), title: `${formatearSegundos(m.t)} · out por ${m.motivo}`, className: "absolute -top-0.5 h-4 w-1.5 -translate-x-1/2 rounded-sm bg-red-600", style: { left: pct(m.t) } }, m._id)))] })] }, f.id));
-                        }) }), estado.eventos.length > 0 && (_jsx("ol", { className: "mt-3 flex flex-wrap gap-1", children: estado.eventos.map((e) => (_jsxs("li", { className: "flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-2xs", children: [_jsx("button", { type: "button", onClick: () => irA === null || irA === void 0 ? void 0 : irA(e.t), className: "tabular-nums hover:underline", children: formatearSegundos(e.t) }), _jsxs("span", { children: [etiquetaJugador(porId.get(e.jugador)), ' ', e.tipo === 'out' ? `· out ${e.motivo}${e.por ? ` · ${etiquetaJugador(porId.get(e.por))}` : ''}` : `· ${e.tipo}`] }), !soloLectura && (_jsx("button", { type: "button", "aria-label": "Borrar marca", onClick: () => void correr(() => api.borrarEvento(e._id)), className: "text-muted hover:text-red-700", children: "\u2715" }))] }, e._id))) })), ((_f = estado.sync) === null || _f === void 0 ? void 0 : _f.sincronizado) && (_jsx("p", { className: "mt-2 text-2xs text-muted", children: "Estad\u00EDsticas del set actualizadas desde las marcas." }))] })] }));
+                        }) }), estado.eventos.length > 0 && (_jsx("ol", { className: "mt-3 flex flex-wrap gap-1", children: estado.eventos.map((e) => (_jsxs("li", { className: "flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-2xs", children: [_jsx("button", { type: "button", onClick: () => irA === null || irA === void 0 ? void 0 : irA(e.t), className: "tabular-nums hover:underline", children: formatearSegundos(e.t) }), _jsxs("span", { children: [etiquetaJugador(porId.get(e.jugador)), ' ', e.tipo === 'out' ? `· out ${e.motivo}${e.por ? ` · ${etiquetaJugador(porId.get(e.por))}` : ''}` : `· ${e.tipo}`] }), !soloLectura && (_jsx("button", { type: "button", "aria-label": "Borrar marca", onClick: () => void correr(() => api.borrarEvento(e._id)), className: "text-muted hover:text-red-700", children: "\u2715" }))] }, e._id))) })), _jsx(GanadorSugerido, { estado: estado, equipos: equipos, soloLectura: soloLectura, guardando: guardando, onAplicar: (g) => void correr(() => api.guardarGanador(refSet, g)) }), ((_f = estado.sync) === null || _f === void 0 ? void 0 : _f.sincronizado) && (_jsx("p", { className: "mt-2 text-2xs text-muted", children: "Estad\u00EDsticas del set actualizadas desde las marcas." }))] })] }));
+};
+/**
+ * El ganador que dicen las marcas, contra el cargado. Se aplica con un clic y nunca solo: las
+ * marcas pueden estar incompletas, y el ganador de un set mueve el marcador y la tabla.
+ */
+const GanadorSugerido = ({ estado, equipos, soloLectura, guardando, onAplicar }) => {
+    var _a, _b, _c;
+    const s = estado.ganadorSugerido;
+    if (!(s === null || s === void 0 ? void 0 : s.ganador))
+        return null;
+    const nombre = (_b = (_a = equipos.find((e) => e.id === s.equipo)) === null || _a === void 0 ? void 0 : _a.nombre) !== null && _b !== void 0 ? _b : (s.ganador === 'local' ? 'Local' : 'Visitante');
+    const cargado = (_c = estado.set.ganadorSet) !== null && _c !== void 0 ? _c : 'pendiente';
+    const coincide = cargado === s.ganador;
+    const por = s.motivo === 'eliminacion' ? 'dejó al rival sin jugadores' : `terminó con más vivos (${s.vivos.local} a ${s.vivos.visitante})`;
+    return (_jsx("div", { className: `mt-3 rounded-lg px-3 py-2 text-sm ${coincide ? 'bg-emerald-50 text-emerald-900' : 'bg-amber-50 text-amber-900'}`, children: coincide ? (_jsxs(_Fragment, { children: ["Gan\u00F3 ", _jsx("b", { children: nombre }), ", como dicen las marcas."] })) : (_jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [_jsxs("span", { children: ["Seg\u00FAn las marcas gan\u00F3 ", _jsx("b", { children: nombre }), ": ", por, ".", cargado !== 'pendiente' && _jsx(_Fragment, { children: " Hoy el set dice otra cosa." })] }), !soloLectura && (_jsxs("button", { type: "button", disabled: guardando, onClick: () => onAplicar(s.ganador), className: "rounded-md bg-amber-600 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50", children: ["Marcar ganador a ", nombre] }))] })) }));
 };
 export default CapturaSet;
 //# sourceMappingURL=CapturaSet.js.map

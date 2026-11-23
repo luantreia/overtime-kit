@@ -22,11 +22,23 @@ export interface TiempoSet {
     origen?: 'manual' | 'cv' | 'en_vivo';
     confirmado?: boolean;
 }
+export type GanadorSet = 'local' | 'visitante' | 'empate' | 'pendiente';
 export interface EstadoSet {
     set: {
         _id: string;
         numeroSet: number;
         tiempo: TiempoSet | null;
+        ganadorSet?: GanadorSet;
+    };
+    /** Ganador según las marcas: una sugerencia, no se aplica solo. Opcional en backends viejos. */
+    ganadorSugerido?: {
+        ganador: 'local' | 'visitante' | null;
+        motivo: 'eliminacion' | 'mas_vivos' | null;
+        vivos: {
+            local: number;
+            visitante: number;
+        };
+        equipo: string | null;
     };
     alineacion: {
         jugador: string;
@@ -60,6 +72,7 @@ export declare function crearApiCaptura(fetcher: Fetcher): {
         equipo: string;
     }[]) => Promise<EstadoSet>;
     guardarTiempo: (ref: RefSet, tiempo: TiempoSet | null) => Promise<EstadoSet>;
+    guardarGanador: (ref: RefSet, ganadorSet: GanadorSet) => Promise<EstadoSet>;
     guardarVideos: (partidoId: string, videos: VideoPartido[]) => Promise<{
         videos: VideoPartido[];
         videoUrl: string;
