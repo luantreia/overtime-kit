@@ -25,6 +25,13 @@
  * hay que expandirlo a mano como en el ejemplo.
  */
 module.exports = {
+  /**
+   * Modo oscuro sólo cuando la app lo pide (clase `dark` en <html>), nunca por el tema del SO.
+   * Sin esto Tailwind 3 usa 'media': las pocas clases `dark:` sueltas en las apps y en el kit se
+   * activaban en celulares en modo oscuro y dejaban inputs gris oscuro dentro de modales blancos.
+   * Ninguna app tiene un tema oscuro completo, así que hoy esto lo apaga en todas.
+   */
+  darkMode: 'class',
   content: ['./node_modules/overtime-kit/dist/**/*.{js,mjs}'],
   theme: {
     extend: {

@@ -30,10 +30,10 @@ const Textarea = forwardRef<HTMLTextAreaElement, Props>(({
   // campo y el lector de pantalla no lo nombraba) y todos los mensajes de error compartían id.
   const autoId = useId();
   const campoId = id ?? autoId;
-  const baseClasses = 'block w-full rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 disabled:bg-gray-50 disabled:cursor-not-allowed dark:disabled:bg-gray-800';
+  const baseClasses = 'block w-full rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 disabled:bg-slate-50 disabled:cursor-not-allowed dark:disabled:bg-slate-800';
 
   const variants: Record<TextareaVariant, string> = {
-    default: 'border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:focus:border-blue-400',
+    default: 'border-slate-300 focus:border-brand-500 focus:ring-brand-500 dark:border-slate-600 dark:focus:border-brand-400',
     error: 'border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-600 dark:focus:border-red-400',
     success: 'border-green-300 focus:border-green-500 focus:ring-green-500 dark:border-green-600 dark:focus:border-green-400'
   };
@@ -52,7 +52,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, Props>(({
   return (
     <div className={containerClasses}>
       {label && (
-        <label htmlFor={campoId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label htmlFor={campoId} className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -76,7 +76,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, Props>(({
       )}
 
       {helperText && !error && (
-        <p id={`${campoId}-helper`} className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p id={`${campoId}-helper`} className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           {helperText}
         </p>
       )}

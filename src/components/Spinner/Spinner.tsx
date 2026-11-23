@@ -32,8 +32,8 @@ const Spinner = ({
   };
 
   const variants: Record<SpinnerVariant, string> = {
-    primary: 'text-blue-600 border-blue-200',
-    secondary: 'text-gray-600 border-gray-200',
+    primary: 'text-brand-600 border-brand-200',
+    secondary: 'text-slate-600 border-slate-200',
     success: 'text-green-600 border-green-200',
     danger: 'text-red-600 border-red-200',
     warning: 'text-yellow-600 border-yellow-200',
@@ -60,7 +60,7 @@ const Spinner = ({
         <span className="sr-only">Cargando...</span>
       </div>
       {showMessage && message && (
-        <p className={`mt-2 text-sm text-gray-600 dark:text-gray-400`}>
+        <p className={`mt-2 text-sm text-slate-600 dark:text-slate-400`}>
           {message}
         </p>
       )}

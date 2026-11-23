@@ -139,7 +139,7 @@ const Overlay = ({ isOpen, onClose, children, presentacion = 'modal', size = 'md
         confirmacion: 'm-auto w-full max-w-sm rounded-2xl mx-4',
     };
     const contenedorClasses = [
-        'relative flex flex-col overflow-hidden bg-white shadow-xl transition-all dark:bg-gray-800',
+        'relative flex flex-col overflow-hidden bg-white shadow-xl transition-all dark:bg-slate-800',
         porPresentacion[presentacion],
         className,
     ]
@@ -168,7 +168,7 @@ const Overlay = ({ isOpen, onClose, children, presentacion = 'modal', size = 'md
     // franja: sin esa reserva un título largo se le mete debajo y en mobile queda ilegible justo
     // en el renglón más importante.
     const encabezadoClasses = [
-        'shrink-0 border-b border-gray-200 px-4 py-3 dark:border-gray-700 sm:px-6 sm:py-4',
+        'shrink-0 border-b border-slate-200 px-4 py-3 dark:border-slate-700 sm:px-6 sm:py-4',
         conBotonCerrar ? 'pr-14' : '',
         headerClassName,
     ]
@@ -186,7 +186,7 @@ const Overlay = ({ isOpen, onClose, children, presentacion = 'modal', size = 'md
         .filter(Boolean)
         .join(' ');
     const pieClasses = [
-        'shrink-0 border-t border-gray-200 bg-gray-50/60 px-4 py-3 dark:border-gray-700 dark:bg-gray-900/40 sm:px-6',
+        'shrink-0 border-t border-slate-200 bg-slate-50/60 px-4 py-3 dark:border-slate-700 dark:bg-slate-900/40 sm:px-6',
         footerClassName,
     ]
         .filter(Boolean)
@@ -195,7 +195,7 @@ const Overlay = ({ isOpen, onClose, children, presentacion = 'modal', size = 'md
         if (closeOnBackdrop && e.target === e.currentTarget)
             onClose();
     };
-    return (0, react_dom_1.createPortal)((0, jsx_runtime_1.jsx)("div", { className: backdropClasses, style: { zIndex }, onClick: alClickearFondo, children: (0, jsx_runtime_1.jsxs)("div", { className: contenedorClasses, role: "dialog", "aria-modal": "true", "aria-labelledby": title ? `overlay-${idBase}-title` : undefined, "aria-describedby": subtitle ? `overlay-${idBase}-subtitle` : undefined, tabIndex: -1, ref: contenedorRef, ...props, children: [presentacion === 'hoja' && ((0, jsx_runtime_1.jsx)("div", { "aria-hidden": true, className: "mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-gray-300 dark:bg-gray-600" })), (title || subtitle) && ((0, jsx_runtime_1.jsxs)("div", { className: encabezadoClasses, children: [title && ((0, jsx_runtime_1.jsx)("h3", { id: `overlay-${idBase}-title`, className: "text-lg font-semibold text-gray-900 dark:text-white", children: title })), subtitle && ((0, jsx_runtime_1.jsx)("p", { id: `overlay-${idBase}-subtitle`, className: "mt-1 text-sm text-gray-600 dark:text-gray-400", children: subtitle }))] })), (0, jsx_runtime_1.jsx)("div", { className: cuerpoClasses, children: children }), footer && (0, jsx_runtime_1.jsx)("div", { className: pieClasses, children: footer }), conBotonCerrar && ((0, jsx_runtime_1.jsx)("button", { type: "button", onClick: onClose, className: "absolute right-2 top-[calc(env(safe-area-inset-top)+0.5rem)] flex h-11 w-11\r\n                       items-center justify-center rounded-lg text-gray-400 transition-colors\r\n                       [touch-action:manipulation] hover:bg-gray-100 hover:text-gray-600\r\n                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50\r\n                       dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300\r\n                       boxed:top-2", "aria-label": "Cerrar", children: (0, jsx_runtime_1.jsx)("svg", { className: "h-6 w-6", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", children: (0, jsx_runtime_1.jsx)("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M6 18L18 6M6 6l12 12" }) }) }))] }) }), document.body);
+    return (0, react_dom_1.createPortal)((0, jsx_runtime_1.jsx)("div", { className: backdropClasses, style: { zIndex }, onClick: alClickearFondo, children: (0, jsx_runtime_1.jsxs)("div", { className: contenedorClasses, role: "dialog", "aria-modal": "true", "aria-labelledby": title ? `overlay-${idBase}-title` : undefined, "aria-describedby": subtitle ? `overlay-${idBase}-subtitle` : undefined, tabIndex: -1, ref: contenedorRef, ...props, children: [presentacion === 'hoja' && ((0, jsx_runtime_1.jsx)("div", { "aria-hidden": true, className: "mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-slate-300 dark:bg-slate-600" })), (title || subtitle) && ((0, jsx_runtime_1.jsxs)("div", { className: encabezadoClasses, children: [title && ((0, jsx_runtime_1.jsx)("h3", { id: `overlay-${idBase}-title`, className: "text-lg font-semibold text-slate-900 dark:text-white", children: title })), subtitle && ((0, jsx_runtime_1.jsx)("p", { id: `overlay-${idBase}-subtitle`, className: "mt-1 text-sm text-slate-600 dark:text-slate-400", children: subtitle }))] })), (0, jsx_runtime_1.jsx)("div", { className: cuerpoClasses, children: children }), footer && (0, jsx_runtime_1.jsx)("div", { className: pieClasses, children: footer }), conBotonCerrar && ((0, jsx_runtime_1.jsx)("button", { type: "button", onClick: onClose, className: "absolute right-2 top-[calc(env(safe-area-inset-top)+0.5rem)] flex h-11 w-11\n                       items-center justify-center rounded-lg text-slate-400 transition-colors\n                       [touch-action:manipulation] hover:bg-slate-100 hover:text-slate-600\n                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50\n                       dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-slate-300\n                       boxed:top-2", "aria-label": "Cerrar", children: (0, jsx_runtime_1.jsx)("svg", { className: "h-6 w-6", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", children: (0, jsx_runtime_1.jsx)("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M6 18L18 6M6 6l12 12" }) }) }))] }) }), document.body);
 };
 exports.default = Overlay;
 //# sourceMappingURL=Overlay.js.map

@@ -15,7 +15,7 @@ const ConfirmModal = ({ isOpen, title = 'Confirmar', message = '¿Desea continua
     const confirmClasses = variant === 'danger'
         ? 'bg-rose-600 hover:bg-rose-700'
         : variant === 'primary'
-            ? 'bg-blue-600 hover:bg-blue-700'
+            ? 'bg-brand-600 hover:bg-brand-700'
             : 'bg-slate-600 hover:bg-slate-700';
     return (_jsx(ModalBase, { isOpen: isOpen, onClose: onCancel, title: title, size: size, children: _jsxs("div", { className: "p-4", children: [_jsx("div", { className: "text-sm text-slate-700", children: typeof message === 'string' ? _jsx("p", { children: message }) : message }), _jsxs("div", { className: "mt-6 flex justify-end gap-3", children: [showCancel ? (_jsx("button", { type: "button", onClick: onCancel, className: "rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900", children: cancelLabel })) : null, showConfirm ? (_jsx("button", { type: "button", onClick: onConfirm, className: `rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm transition ${confirmClasses}`, children: confirmLabel })) : null] })] }) }));
 };

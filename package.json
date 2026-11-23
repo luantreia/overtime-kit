@@ -1,20 +1,23 @@
 {
   "name": "overtime-kit",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Primitivas de UI compartidas por las apps de Overtime",
   "license": "UNLICENSED",
   "private": false,
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
-  "//sideEffects": "Ningún módulo del kit hace nada al importarse: sólo define componentes. Con esto webpack puede descartar lo que la app no usa. Importa de verdad: `ErrorMessage` arrastra @heroicons, y sin tree-shaking una app que sólo usa Modal se llevaba igual 92 kB gzip de más.",
-  "sideEffects": false,
+  "//sideEffects": "Ningún módulo del kit hace nada al importarse: sólo define componentes. Con esto webpack puede descartar lo que la app no usa. Importa de verdad: `ErrorMessage` arrastra @heroicons, y sin tree-shaking una app que sólo usa Modal se llevaba igual 92 kB gzip de más. base.css es la excepción: es CSS global y tiene que sobrevivir al tree-shaking.",
+  "sideEffects": [
+    "*.css"
+  ],
   "//files": "`src` se publica a propósito: el build lleva source maps que apuntan a los .tsx, y sin las fuentes el source-map-loader de CRA escupe un warning por archivo en cada build de cada app. Además permite entrar al código del kit desde el debugger de cualquier app.",
   "files": [
     "dist",
     "src",
     "tailwind-preset.js",
-    "README.md"
+    "README.md",
+    "base.css"
   ],
   "scripts": {
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",

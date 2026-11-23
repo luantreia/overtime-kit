@@ -32,9 +32,9 @@ const Table = ({
   ...props
 }: TableProps) => {
   const tableClasses = [
-    'w-full text-sm text-left text-gray-500 dark:text-gray-400',
-    striped && 'divide-y divide-gray-200 dark:divide-gray-700',
-    hover && 'hover:bg-gray-50 dark:hover:bg-gray-600',
+    'w-full text-sm text-left text-slate-500 dark:text-slate-400',
+    striped && 'divide-y divide-slate-200 dark:divide-slate-700',
+    hover && 'hover:bg-slate-50 dark:hover:bg-slate-600',
     compact && 'text-xs',
     className
   ].filter(Boolean).join(' ');
@@ -42,8 +42,8 @@ const Table = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-600 dark:text-gray-400">Cargando...</span>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+        <span className="ml-3 text-slate-600 dark:text-slate-400">Cargando...</span>
       </div>
     );
   }
@@ -58,7 +58,7 @@ const Table = ({
 
   if (data.length === 0) {
     return (
-      <div className="text-center p-8 text-gray-500 dark:text-gray-400">
+      <div className="text-center p-8 text-slate-500 dark:text-slate-400">
         {emptyMessage}
       </div>
     );
@@ -68,7 +68,7 @@ const Table = ({
     <div className="overflow-x-auto">
       <table className={tableClasses} {...props}>
         {headers.length > 0 && (
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+          <thead className="text-xs text-slate-700 uppercase bg-slate-50 dark:bg-slate-700 dark:text-slate-400">
             <tr>
               {headers.map((header, index) => (
                 <th key={index} className="px-6 py-3 font-medium">
@@ -78,9 +78,9 @@ const Table = ({
             </tr>
           </thead>
         )}
-        <tbody className="bg-white dark:bg-gray-800">
+        <tbody className="bg-white dark:bg-slate-800">
           {children || data.map((row, index) => (
-            <tr key={index} className="border-b dark:border-gray-700">
+            <tr key={index} className="border-b dark:border-slate-700">
               {Object.values(row).map((cell, cellIndex) => (
                 <td key={cellIndex} className="px-6 py-4">
                   {cell}

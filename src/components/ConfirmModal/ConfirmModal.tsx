@@ -44,7 +44,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({
     variant === 'danger'
       ? 'bg-rose-600 hover:bg-rose-700'
       : variant === 'primary'
-      ? 'bg-blue-600 hover:bg-blue-700'
+      ? 'bg-brand-600 hover:bg-brand-700'
       : 'bg-slate-600 hover:bg-slate-700';
 
   return (

@@ -10,8 +10,8 @@ const Spinner = ({ size = 'md', variant = 'primary', className = '', message = '
         xl: 'w-12 h-12'
     };
     const variants = {
-        primary: 'text-blue-600 border-blue-200',
-        secondary: 'text-gray-600 border-gray-200',
+        primary: 'text-brand-600 border-brand-200',
+        secondary: 'text-slate-600 border-slate-200',
         success: 'text-green-600 border-green-200',
         danger: 'text-red-600 border-red-200',
         warning: 'text-yellow-600 border-yellow-200',
@@ -26,7 +26,7 @@ const Spinner = ({ size = 'md', variant = 'primary', className = '', message = '
         variants[variant],
         sizes[size]
     ].filter(Boolean).join(' ');
-    return ((0, jsx_runtime_1.jsxs)("div", { className: containerClasses, role: "status", ...props, children: [(0, jsx_runtime_1.jsx)("div", { className: spinnerClasses, "aria-label": "Cargando", children: (0, jsx_runtime_1.jsx)("span", { className: "sr-only", children: "Cargando..." }) }), showMessage && message && ((0, jsx_runtime_1.jsx)("p", { className: `mt-2 text-sm text-gray-600 dark:text-gray-400`, children: message }))] }));
+    return ((0, jsx_runtime_1.jsxs)("div", { className: containerClasses, role: "status", ...props, children: [(0, jsx_runtime_1.jsx)("div", { className: spinnerClasses, "aria-label": "Cargando", children: (0, jsx_runtime_1.jsx)("span", { className: "sr-only", children: "Cargando..." }) }), showMessage && message && ((0, jsx_runtime_1.jsx)("p", { className: `mt-2 text-sm text-slate-600 dark:text-slate-400`, children: message }))] }));
 };
 exports.default = Spinner;
 //# sourceMappingURL=Spinner.js.map

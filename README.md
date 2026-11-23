@@ -11,7 +11,7 @@ sobre 6 copias, `PartidoCard` 5 sobre 6.
 ## Instalación
 
 ```bash
-npm install github:<usuario>/overtime-kit#v0.1.0
+npm install github:<usuario>/overtime-kit#v0.7.0
 ```
 
 Se instala por URL de git y no por registry: no hace falta cuenta de npm ni token de auth en
@@ -40,6 +40,24 @@ module.exports = {
 
 El preset aporta además el breakpoint `boxed` —que `Overlay` usa para decidir cuándo mostrarse a
 pantalla completa— y la paleta `brand`, que hasta ahora cada app repetía en su config.
+
+Desde v0.7.0 también fija `darkMode: 'class'`: el modo oscuro sólo se activa si la app pone la
+clase `dark` en `<html>`, nunca por el tema del sistema operativo.
+
+### Paso obligatorio (v0.7.0+): base.css
+
+```ts
+// src/index.tsx de cada app, antes que el CSS propio
+import 'overtime-kit/base.css';
+```
+
+Carga Inter y fija fondo y color de texto base. Sin esto cada app cae a la fuente del sistema
+operativo y se ve distinta según el dispositivo.
+
+### Convención de color
+
+Los componentes del kit usan `slate` para grises y `brand` para el acento. No usar `gray` ni
+`blue`/`indigo` en código nuevo de las apps: son la causa de que las apps "no se vieran iguales".
 
 ## Qué hay
 

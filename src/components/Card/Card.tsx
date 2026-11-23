@@ -36,9 +36,9 @@ const Card: React.FC<CardProps> = ({
   ...props
 }) => {
   const variants: Record<CardVariant, string> = {
-    default: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700',
-    outlined: 'bg-white dark:bg-gray-800 border-2 border-blue-200 dark:border-blue-700',
-    filled: 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700',
+    default: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700',
+    outlined: 'bg-white dark:bg-slate-800 border-2 border-brand-200 dark:border-brand-700',
+    filled: 'bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-700',
     success: 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700',
     warning: 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700',
     danger: 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700'
@@ -70,16 +70,16 @@ const Card: React.FC<CardProps> = ({
   return (
     <div className={cardClasses} {...props}>
       {(title || subtitle || actions) && (
-        <div className={`border-b border-gray-200 dark:border-gray-700 pb-3 mb-3 ${headerClassName}`}>
+        <div className={`border-b border-slate-200 dark:border-slate-700 pb-3 mb-3 ${headerClassName}`}>
           <div className="flex items-center justify-between">
             <div className="flex-1">
               {title && (
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                   {title}
                 </h3>
               )}
               {subtitle && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                   {subtitle}
                 </p>
               )}
