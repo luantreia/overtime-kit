@@ -36,7 +36,7 @@ function useCronometro() {
         },
     };
 }
-const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloLectura, onCambio, className = '', }) => {
+const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloLectura, origen = 'manual', onCambio, className = '', }) => {
     var _a, _b, _c, _d, _e, _f;
     const [estado, setEstado] = (0, react_1.useState)(null);
     const [error, setError] = (0, react_1.useState)(null);
@@ -95,7 +95,7 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
     // --- acciones -------------------------------------------------------------------------------
     const marcarTiempo = (cual, valor = ahora()) => {
         var _a, _b;
-        const nuevo = { desde: (_a = tiempo === null || tiempo === void 0 ? void 0 : tiempo.desde) !== null && _a !== void 0 ? _a : valor, hasta: (_b = tiempo === null || tiempo === void 0 ? void 0 : tiempo.hasta) !== null && _b !== void 0 ? _b : valor + 1, origen: 'manual', confirmado: true };
+        const nuevo = { desde: (_a = tiempo === null || tiempo === void 0 ? void 0 : tiempo.desde) !== null && _a !== void 0 ? _a : valor, hasta: (_b = tiempo === null || tiempo === void 0 ? void 0 : tiempo.hasta) !== null && _b !== void 0 ? _b : valor + 1, origen, confirmado: true };
         nuevo[cual] = valor;
         if (nuevo.hasta <= nuevo.desde) {
             if (cual === 'desde')
@@ -111,16 +111,16 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
             setPendiente({ jugador, equipo, motivo, t });
             return;
         }
-        void correr(() => api.agregarEvento(refSet, { t, tipo: 'out', jugador, equipo, motivo }));
+        void correr(() => api.agregarEvento(refSet, { t, tipo: 'out', jugador, equipo, motivo, origen }));
     };
     const confirmarPor = (por) => {
         if (!pendiente)
             return;
         const { jugador, equipo, motivo, t } = pendiente;
         setPendiente(null);
-        void correr(() => api.agregarEvento(refSet, { t, tipo: 'out', jugador, equipo, motivo, por }));
+        void correr(() => api.agregarEvento(refSet, { t, tipo: 'out', jugador, equipo, motivo, por, origen }));
     };
-    const reingreso = (jugador, equipo) => correr(() => api.agregarEvento(refSet, { t: ahora(), tipo: 'reingreso', jugador, equipo }));
+    const reingreso = (jugador, equipo) => correr(() => api.agregarEvento(refSet, { t: ahora(), tipo: 'reingreso', jugador, equipo, origen }));
     const abrirAlineacion = () => {
         setBorradorAlineacion(new Set((estado === null || estado === void 0 ? void 0 : estado.alineacionCargada) ? estado.alineacion.map((a) => a.jugador) : []));
         setEditandoAlineacion(true);
@@ -144,7 +144,7 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
                                     var _a;
                                     const d = (0, reloj_1.leerSegundos)((_a = window.prompt('Duración del set (m:ss)', tiempo ? (0, reloj_1.formatearSegundos)(tiempo.hasta - tiempo.desde) : '')) !== null && _a !== void 0 ? _a : '');
                                     if (d != null && d > 0)
-                                        void correr(() => api.guardarTiempo(refSet, { desde: inicio, hasta: inicio + d, origen: 'manual', confirmado: true }));
+                                        void correr(() => api.guardarTiempo(refSet, { desde: inicio, hasta: inicio + d, origen, confirmado: true }));
                                 }, children: "Cargar duraci\u00F3n" })] }))] }), error && (0, jsx_runtime_1.jsx)("p", { className: "text-red-700", role: "alert", children: error }), (editandoAlineacion || (!estado.alineacionCargada && !soloLectura)) ? ((0, jsx_runtime_1.jsxs)("section", { className: "rounded-lg border border-slate-200 p-3", children: [(0, jsx_runtime_1.jsx)("p", { className: "mb-2 font-semibold", children: "\u00BFQui\u00E9nes arrancan el set?" }), (0, jsx_runtime_1.jsx)("div", { className: "grid gap-3 sm:grid-cols-2", children: equipos.map((eq, i) => ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("p", { className: `mb-1 text-xs font-semibold uppercase ${TEXTO[i]}`, children: eq.nombre }), (0, jsx_runtime_1.jsx)("div", { className: "flex flex-wrap gap-1", children: jugadores.filter((j) => j.equipo === eq.id).map((j) => {
                                         const sel = borradorAlineacion.has(j.id);
                                         return ((0, jsx_runtime_1.jsx)("button", { type: "button", "aria-pressed": sel, onClick: () => setBorradorAlineacion((prev) => {

@@ -17,7 +17,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CamarasPartido = exports.CapturaSet = exports.ReproductorPartido = exports.crearApiCaptura = void 0;
+exports.CapturaSetOficial = exports.CamarasPartido = exports.CapturaSet = exports.ReproductorPartido = exports.crearApiCaptura = void 0;
 /**
  * overtime-kit/captura · Capa 1 (dominio)
  *
@@ -39,4 +39,6 @@ var CamarasPartido_1 = require("./CamarasPartido");
 Object.defineProperty(exports, "CamarasPartido", { enumerable: true, get: function () { return __importDefault(CamarasPartido_1).default; } });
 __exportStar(require("./supervivencia"), exports);
 __exportStar(require("./reloj"), exports);
+var CapturaSetOficial_1 = require("./CapturaSetOficial");
+Object.defineProperty(exports, "CapturaSetOficial", { enumerable: true, get: function () { return __importDefault(CapturaSetOficial_1).default; } });
 //# sourceMappingURL=index.js.map

@@ -28,6 +28,8 @@ export interface CapturaSetProps {
     /** Llevar el video a un segundo de partido (al tocar una marca). */
     irA?: (segPartido: number) => void;
     soloLectura?: boolean;
+    /** De dónde salen los tiempos: 'manual' (video o cronómetro) o 'en_vivo' (Overtime-Partido). */
+    origen?: 'manual' | 'en_vivo';
     /** Se llama después de cada cambio guardado (p. ej. para refrescar estadísticas). */
     onCambio?: (estado: EstadoSet) => void;
     className?: string;

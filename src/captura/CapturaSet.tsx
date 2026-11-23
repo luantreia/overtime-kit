@@ -41,6 +41,8 @@ export interface CapturaSetProps {
   /** Llevar el video a un segundo de partido (al tocar una marca). */
   irA?: (segPartido: number) => void;
   soloLectura?: boolean;
+  /** De dónde salen los tiempos: 'manual' (video o cronómetro) o 'en_vivo' (Overtime-Partido). */
+  origen?: 'manual' | 'en_vivo';
   /** Se llama después de cada cambio guardado (p. ej. para refrescar estadísticas). */
   onCambio?: (estado: EstadoSet) => void;
   className?: string;
@@ -78,7 +80,7 @@ function useCronometro() {
 }
 
 const CapturaSet: React.FC<CapturaSetProps> = ({
-  api, refSet, equipos, jugadores, obtenerTiempo, irA, soloLectura, onCambio, className = '',
+  api, refSet, equipos, jugadores, obtenerTiempo, irA, soloLectura, origen = 'manual', onCambio, className = '',
 }) => {
   const [estado, setEstado] = useState<EstadoSet | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -146,7 +148,7 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
 
   // --- acciones -------------------------------------------------------------------------------
   const marcarTiempo = (cual: 'desde' | 'hasta', valor = ahora()) => {
-    const nuevo = { desde: tiempo?.desde ?? valor, hasta: tiempo?.hasta ?? valor + 1, origen: 'manual' as const, confirmado: true };
+    const nuevo = { desde: tiempo?.desde ?? valor, hasta: tiempo?.hasta ?? valor + 1, origen, confirmado: true };
     nuevo[cual] = valor;
     if (nuevo.hasta <= nuevo.desde) {
       if (cual === 'desde') nuevo.hasta = nuevo.desde + 1;
@@ -161,18 +163,18 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
       setPendiente({ jugador, equipo, motivo, t });
       return;
     }
-    void correr(() => api.agregarEvento(refSet, { t, tipo: 'out', jugador, equipo, motivo }));
+    void correr(() => api.agregarEvento(refSet, { t, tipo: 'out', jugador, equipo, motivo, origen }));
   };
 
   const confirmarPor = (por: string | null) => {
     if (!pendiente) return;
     const { jugador, equipo, motivo, t } = pendiente;
     setPendiente(null);
-    void correr(() => api.agregarEvento(refSet, { t, tipo: 'out', jugador, equipo, motivo, por }));
+    void correr(() => api.agregarEvento(refSet, { t, tipo: 'out', jugador, equipo, motivo, por, origen }));
   };
 
   const reingreso = (jugador: string, equipo: string) =>
-    correr(() => api.agregarEvento(refSet, { t: ahora(), tipo: 'reingreso', jugador, equipo }));
+    correr(() => api.agregarEvento(refSet, { t: ahora(), tipo: 'reingreso', jugador, equipo, origen }));
 
   const abrirAlineacion = () => {
     setBorradorAlineacion(new Set(estado?.alineacionCargada ? estado.alineacion.map((a) => a.jugador) : []));
@@ -220,7 +222,7 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
               className="rounded px-2 py-1 text-brand-700 hover:underline"
               onClick={() => {
                 const d = leerSegundos(window.prompt('Duración del set (m:ss)', tiempo ? formatearSegundos(tiempo.hasta - tiempo.desde) : '') ?? '');
-                if (d != null && d > 0) void correr(() => api.guardarTiempo(refSet, { desde: inicio, hasta: inicio + d, origen: 'manual', confirmado: true }));
+                if (d != null && d > 0) void correr(() => api.guardarTiempo(refSet, { desde: inicio, hasta: inicio + d, origen, confirmado: true }));
               }}
             >
               Cargar duración

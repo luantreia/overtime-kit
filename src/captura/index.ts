@@ -23,3 +23,6 @@ export type { CamarasPartidoProps } from './CamarasPartido';
 
 export * from './supervivencia';
 export * from './reloj';
+
+export { default as CapturaSetOficial } from './CapturaSetOficial';
+export type { CapturaSetOficialProps } from './CapturaSetOficial';
