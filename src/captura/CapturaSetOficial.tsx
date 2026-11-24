@@ -92,15 +92,18 @@ const CapturaSetOficial: React.FC<CapturaSetOficialProps> = ({
   if (error) return <p className="text-sm text-red-700">{error}</p>;
   if (!partido) return <p className="text-sm text-muted">Cargando partido…</p>;
 
-  const reloj = obtenerTiempo ?? (videos.length ? () => reproductor.current?.segundoPartido() ?? null : undefined);
+  // En vivo (Overtime-Partido) no se muestra video: el tiempo sale del reloj en vivo del partido.
+  const enVivo = origen === 'en_vivo';
+  const sinVideo = enVivo || Boolean(obtenerTiempo);
+  const reloj = obtenerTiempo ?? (!enVivo && videos.length ? () => reproductor.current?.segundoPartido() ?? null : undefined);
 
   return (
     <div className="space-y-3">
-      {!obtenerTiempo && videos.length > 0 && <ReproductorPartido ref={reproductor} videos={videos} />}
-      {!obtenerTiempo && videos.length === 0 && (
+      {!sinVideo && videos.length > 0 && <ReproductorPartido ref={reproductor} videos={videos} />}
+      {!sinVideo && videos.length === 0 && (
         <p className="rounded-lg bg-slate-50 p-3 text-sm text-muted">El partido no tiene video: los tiempos se toman con el cronómetro del set.</p>
       )}
-      {!obtenerTiempo && (
+      {!sinVideo && (
         <div>
           <button type="button" onClick={() => setVerCamaras((v) => !v)} className="text-sm text-brand-700 hover:underline">
             {verCamaras ? 'Ocultar cámaras' : `Cámaras del partido (${videos.length})`}
@@ -121,7 +124,7 @@ const CapturaSetOficial: React.FC<CapturaSetOficialProps> = ({
         equipos={equipos}
         jugadores={jugadores}
         obtenerTiempo={reloj}
-        irA={obtenerTiempo ? undefined : (s) => reproductor.current?.irA(s)}
+        irA={sinVideo ? undefined : (s) => reproductor.current?.irA(s)}
         soloLectura={soloLectura}
         origen={origen}
         onCambio={() => onCambio?.()}

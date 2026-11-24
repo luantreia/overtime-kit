@@ -47,11 +47,24 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
     /** Editor en línea del tiempo del set (inicio y duración en m:ss). null = cerrado. */
     const [editTiempo, setEditTiempo] = (0, react_1.useState)(null);
     const crono = useCronometro();
+    const enVivo = origen === 'en_vivo';
+    // En vivo el "ahora" es la hora real del servidor pasada por el reloj del partido (no el reloj
+    // de juego, que se frena en pausas): así el cursor coincide con donde el servidor guarda la marca.
+    const desfaseServidor = (0, react_1.useRef)(0);
+    const [, latir] = (0, react_1.useState)(0);
+    (0, react_1.useEffect)(() => {
+        if (!enVivo)
+            return undefined;
+        const t = window.setInterval(() => latir((x) => x + 1), 1000);
+        return () => window.clearInterval(t);
+    }, [enVivo]);
     const claveSet = (_a = refSet.setPartido) !== null && _a !== void 0 ? _a : refSet.planillaSet;
     const onCambioRef = (0, react_1.useRef)(onCambio);
     onCambioRef.current = onCambio;
     const aplicar = (0, react_1.useCallback)((e) => {
         var _a;
+        if (e.ahoraServidor)
+            desfaseServidor.current = e.ahoraServidor - Date.now();
         setEstado(e);
         setError(null);
         (_a = onCambioRef.current) === null || _a === void 0 ? void 0 : _a.call(onCambioRef, e);
@@ -72,7 +85,13 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
         let vivo = true;
         setEstado(null);
         api.leer(refSet)
-            .then((e) => vivo && setEstado(e))
+            .then((e) => {
+            if (!vivo)
+                return;
+            if (e.ahoraServidor)
+                desfaseServidor.current = e.ahoraServidor - Date.now();
+            setEstado(e);
+        })
             .catch((e) => vivo && setError(e instanceof Error ? e.message : 'No se pudo cargar el set'));
         return () => {
             vivo = false;
@@ -83,8 +102,17 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
     const porId = (0, react_1.useMemo)(() => new Map(jugadores.map((j) => [j.id, j])), [jugadores]);
     const tiempo = (_b = estado === null || estado === void 0 ? void 0 : estado.set.tiempo) !== null && _b !== void 0 ? _b : null;
     const inicio = (_c = tiempo === null || tiempo === void 0 ? void 0 : tiempo.desde) !== null && _c !== void 0 ? _c : 0;
-    /** Segundo "ahora": el del video, o el cronómetro sumado al inicio del set. */
+    const segundoEnVivo = () => {
+        const reloj = estado === null || estado === void 0 ? void 0 : estado.relojEnVivo;
+        if (!reloj)
+            return 0; // la primera marca en vivo ancla el reloj en 0
+        const ahoraMs = Date.now() + desfaseServidor.current;
+        return Math.max(0, Math.round((reloj.segundo + (ahoraMs - new Date(reloj.ancla).getTime()) / 1000) * 10) / 10);
+    };
+    /** Segundo "ahora": en vivo, el reloj del partido; si no, el del video o el cronómetro. */
     const ahora = () => {
+        if (enVivo)
+            return segundoEnVivo();
         const v = obtenerTiempo === null || obtenerTiempo === void 0 ? void 0 : obtenerTiempo();
         if (v != null)
             return Math.round(v * 10) / 10;
@@ -92,7 +120,7 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
     };
     const alineados = (0, react_1.useMemo)(() => { var _a; return ((_a = estado === null || estado === void 0 ? void 0 : estado.alineacion) !== null && _a !== void 0 ? _a : []).map((a) => ({ id: a.jugador, lado: a.equipo })); }, [estado]);
     const filas = (0, react_1.useMemo)(() => (estado ? (0, supervivencia_1.lineaDeTiempo)(alineados, estado.eventos, inicio) : []), [estado, alineados, inicio]);
-    const tRef = obtenerTiempo ? ((_d = obtenerTiempo()) !== null && _d !== void 0 ? _d : inicio) : inicio + crono.valor();
+    const tRef = enVivo ? segundoEnVivo() : obtenerTiempo ? ((_d = obtenerTiempo()) !== null && _d !== void 0 ? _d : inicio) : inicio + crono.valor();
     const vivos = (0, supervivencia_1.vivosPorLado)(filas, tRef);
     // --- acciones -------------------------------------------------------------------------------
     const marcarTiempo = (cual, valor = ahora()) => {
@@ -142,7 +170,7 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
     const pct = (t) => `${Math.max(0, Math.min(100, ((t - inicio) / dur) * 100))}%`;
     const idxEquipo = (id) => Math.max(0, equipos.findIndex((e) => e.id === id));
     const ultimoCatch = [...estado.eventos].reverse().find((e) => e.tipo === 'out' && e.motivo === 'catch');
-    return ((0, jsx_runtime_1.jsxs)("div", { className: `space-y-4 text-sm ${className}`, children: [(0, jsx_runtime_1.jsxs)("section", { className: "flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 p-3", children: [(0, jsx_runtime_1.jsxs)("span", { className: "font-semibold", children: ["Set ", estado.set.numeroSet] }), (0, jsx_runtime_1.jsx)("span", { className: "tabular-nums text-muted", children: tiempo ? `${(0, reloj_1.formatearSegundos)(tiempo.desde)} → ${(0, reloj_1.formatearSegundos)(tiempo.hasta)} · dura ${(0, reloj_1.formatearSegundos)(tiempo.hasta - tiempo.desde)}` : 'sin tiempo marcado' }), !soloLectura && ((0, jsx_runtime_1.jsxs)("span", { className: "ml-auto flex flex-wrap items-center gap-2", children: [!obtenerTiempo && ((0, jsx_runtime_1.jsxs)("button", { type: "button", onClick: crono.alternar, className: "rounded bg-slate-100 px-2 py-1 font-semibold hover:bg-slate-200", children: [crono.corriendo ? '⏸' : '▶', " ", (0, reloj_1.formatearSegundos)(crono.valor())] })), (0, jsx_runtime_1.jsx)("button", { type: "button", disabled: guardando, onClick: () => void marcarTiempo('desde'), className: "rounded bg-slate-800 px-2 py-1 font-semibold text-white hover:bg-slate-700 disabled:opacity-50", children: "Empieza ac\u00E1" }), (0, jsx_runtime_1.jsx)("button", { type: "button", disabled: guardando, onClick: () => void marcarTiempo('hasta'), className: "rounded bg-slate-800 px-2 py-1 font-semibold text-white hover:bg-slate-700 disabled:opacity-50", children: "Termina ac\u00E1" }), !editTiempo && ((0, jsx_runtime_1.jsx)("button", { type: "button", className: "rounded px-2 py-1 text-brand-700 hover:underline", onClick: () => {
+    return ((0, jsx_runtime_1.jsxs)("div", { className: `space-y-4 text-sm ${className}`, children: [(0, jsx_runtime_1.jsxs)("section", { className: "flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 p-3", children: [(0, jsx_runtime_1.jsxs)("span", { className: "font-semibold", children: ["Set ", estado.set.numeroSet] }), (0, jsx_runtime_1.jsx)("span", { className: "tabular-nums text-muted", children: tiempo ? `${(0, reloj_1.formatearSegundos)(tiempo.desde)} → ${(0, reloj_1.formatearSegundos)(tiempo.hasta)} · dura ${(0, reloj_1.formatearSegundos)(tiempo.hasta - tiempo.desde)}` : 'sin tiempo marcado' }), !soloLectura && ((0, jsx_runtime_1.jsxs)("span", { className: "ml-auto flex flex-wrap items-center gap-2", children: [!obtenerTiempo && !enVivo && ((0, jsx_runtime_1.jsxs)("button", { type: "button", onClick: crono.alternar, className: "rounded bg-slate-100 px-2 py-1 font-semibold hover:bg-slate-200", children: [crono.corriendo ? '⏸' : '▶', " ", (0, reloj_1.formatearSegundos)(crono.valor())] })), (0, jsx_runtime_1.jsx)("button", { type: "button", disabled: guardando, onClick: () => void marcarTiempo('desde'), className: "rounded bg-slate-800 px-2 py-1 font-semibold text-white hover:bg-slate-700 disabled:opacity-50", children: "Empieza ac\u00E1" }), (0, jsx_runtime_1.jsx)("button", { type: "button", disabled: guardando, onClick: () => void marcarTiempo('hasta'), className: "rounded bg-slate-800 px-2 py-1 font-semibold text-white hover:bg-slate-700 disabled:opacity-50", children: "Termina ac\u00E1" }), !editTiempo && ((0, jsx_runtime_1.jsx)("button", { type: "button", className: "rounded px-2 py-1 text-brand-700 hover:underline", onClick: () => {
                                     var _a;
                                     return setEditTiempo({
                                         desde: (0, reloj_1.formatearSegundos)((_a = tiempo === null || tiempo === void 0 ? void 0 : tiempo.desde) !== null && _a !== void 0 ? _a : inicio),
@@ -181,7 +209,12 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
                             const i = idxEquipo(f.lado);
                             const marcas = estado.eventos.filter((e) => e.jugador === f.id && e.tipo === 'out');
                             return ((0, jsx_runtime_1.jsxs)("div", { className: "flex items-center gap-2", children: [(0, jsx_runtime_1.jsx)("span", { className: `w-28 shrink-0 truncate text-2xs ${TEXTO[i]}`, children: etiquetaJugador(porId.get(f.id)) }), (0, jsx_runtime_1.jsxs)("div", { className: "relative h-3 flex-1 rounded bg-slate-100", children: [f.tramos.map(([a, b], k) => ((0, jsx_runtime_1.jsx)("i", { className: `absolute inset-y-0 rounded ${COLORES[i]}`, style: { left: pct(a), width: `calc(${pct(b !== null && b !== void 0 ? b : fin)} - ${pct(a)})` } }, k))), marcas.map((m) => ((0, jsx_runtime_1.jsx)("button", { type: "button", onClick: () => irA === null || irA === void 0 ? void 0 : irA(m.t), title: `${(0, reloj_1.formatearSegundos)(m.t)} · out por ${m.motivo}`, className: "absolute -top-0.5 h-4 w-1.5 -translate-x-1/2 rounded-sm bg-red-600", style: { left: pct(m.t) } }, m._id)))] })] }, f.id));
-                        }) }), estado.eventos.length > 0 && ((0, jsx_runtime_1.jsx)("ol", { className: "mt-3 flex flex-wrap gap-1", children: estado.eventos.map((e) => ((0, jsx_runtime_1.jsxs)("li", { className: "flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-2xs", children: [(0, jsx_runtime_1.jsx)("button", { type: "button", onClick: () => irA === null || irA === void 0 ? void 0 : irA(e.t), className: "tabular-nums hover:underline", children: (0, reloj_1.formatearSegundos)(e.t) }), (0, jsx_runtime_1.jsxs)("span", { children: [etiquetaJugador(porId.get(e.jugador)), ' ', e.tipo === 'out' ? `· out ${e.motivo}${e.por ? ` · ${etiquetaJugador(porId.get(e.por))}` : ''}` : `· ${e.tipo}`] }), !soloLectura && ((0, jsx_runtime_1.jsx)("button", { type: "button", "aria-label": "Borrar marca", onClick: () => void correr(() => api.borrarEvento(e._id)), className: "text-muted hover:text-red-700", children: "\u2715" }))] }, e._id))) })), (0, jsx_runtime_1.jsx)(GanadorSugerido, { estado: estado, equipos: equipos, soloLectura: soloLectura, guardando: guardando, onAplicar: (g) => void correr(() => api.guardarGanador(refSet, g)) }), ((_f = estado.sync) === null || _f === void 0 ? void 0 : _f.sincronizado) && ((0, jsx_runtime_1.jsx)("p", { className: "mt-2 text-2xs text-muted", children: "Estad\u00EDsticas del set actualizadas desde las marcas." }))] })] }));
+                        }) }), !enVivo && !soloLectura && obtenerTiempo && estado.relojEnVivo && !estado.relojEnVivo.alineado
+                        && estado.eventos.some((e) => e.hora) && ((0, jsx_runtime_1.jsx)("p", { className: "mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900", children: "Las marcas en vivo (\u25CF) todav\u00EDa no est\u00E1n alineadas con el video. Llev\u00E1 el video al momento exacto de una de ellas y toc\u00E1 \u00ABEs ac\u00E1\u00BB en esa marca: se corren todas las del partido." })), estado.eventos.length > 0 && ((0, jsx_runtime_1.jsx)("ol", { className: "mt-3 flex flex-wrap gap-1", children: estado.eventos.map((e) => ((0, jsx_runtime_1.jsxs)("li", { className: "flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-2xs", children: [(0, jsx_runtime_1.jsx)("button", { type: "button", onClick: () => irA === null || irA === void 0 ? void 0 : irA(e.t), className: "tabular-nums hover:underline", children: (0, reloj_1.formatearSegundos)(e.t) }), (0, jsx_runtime_1.jsxs)("span", { children: [etiquetaJugador(porId.get(e.jugador)), ' ', e.tipo === 'out' ? `· out ${e.motivo}${e.por ? ` · ${etiquetaJugador(porId.get(e.por))}` : ''}` : `· ${e.tipo}`] }), e.hora && (0, jsx_runtime_1.jsx)("span", { title: "Marcada en vivo", className: "text-amber-600", children: "\u25CF" }), !enVivo && !soloLectura && obtenerTiempo && e.hora && estado.relojEnVivo && !estado.relojEnVivo.alineado && ((0, jsx_runtime_1.jsx)("button", { type: "button", disabled: guardando, onClick: () => {
+                                        const s = obtenerTiempo();
+                                        if (s != null)
+                                            void correr(() => api.alinearEnVivo(e._id, Math.max(0, s)));
+                                    }, className: "font-semibold text-amber-700 hover:underline disabled:opacity-50", children: "Es ac\u00E1" })), !soloLectura && ((0, jsx_runtime_1.jsx)("button", { type: "button", "aria-label": "Borrar marca", onClick: () => void correr(() => api.borrarEvento(e._id)), className: "text-muted hover:text-red-700", children: "\u2715" }))] }, e._id))) })), (0, jsx_runtime_1.jsx)(GanadorSugerido, { estado: estado, equipos: equipos, soloLectura: soloLectura, guardando: guardando, onAplicar: (g) => void correr(() => api.guardarGanador(refSet, g)) }), ((_f = estado.sync) === null || _f === void 0 ? void 0 : _f.sincronizado) && ((0, jsx_runtime_1.jsx)("p", { className: "mt-2 text-2xs text-muted", children: "Estad\u00EDsticas del set actualizadas desde las marcas." }))] })] }));
 };
 /**
  * El ganador que dicen las marcas, contra el cargado. Se aplica con un clic y nunca solo: las

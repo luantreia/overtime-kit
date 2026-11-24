@@ -52,6 +52,17 @@ export interface EstadoSet {
         sincronizado: boolean;
         jugadores?: number;
     };
+    /**
+     * Reloj de las marcas en vivo del partido: segundo = segundo + (hora − ancla) / 1000.
+     * null mientras no haya ninguna marca en vivo. Opcional en backends viejos.
+     */
+    relojEnVivo?: {
+        ancla: string;
+        segundo: number;
+        alineado: boolean;
+    } | null;
+    /** Hora del servidor al responder (ms), para calcular el "ahora" en vivo igual que él. */
+    ahoraServidor?: number;
 }
 export interface NuevoEvento {
     t: number;
@@ -72,6 +83,8 @@ export declare function crearApiCaptura(fetcher: Fetcher): {
         equipo: string;
     }[]) => Promise<EstadoSet>;
     guardarTiempo: (ref: RefSet, tiempo: TiempoSet | null) => Promise<EstadoSet>;
+    /** "Esta marca en vivo está en este segundo del video": alinea todas las del partido. */
+    alinearEnVivo: (eventoId: string, segundo: number) => Promise<EstadoSet>;
     guardarGanador: (ref: RefSet, ganadorSet: GanadorSet) => Promise<EstadoSet>;
     guardarVideos: (partidoId: string, videos: VideoPartido[]) => Promise<{
         videos: VideoPartido[];

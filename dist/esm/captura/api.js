@@ -7,6 +7,8 @@ export function crearApiCaptura(fetcher) {
         borrarEvento: (id) => fetcher(`/eventos-set/${id}`, { method: 'DELETE' }),
         guardarAlineacion: (ref, alineacion) => fetcher('/eventos-set/alineacion', json('PUT', { ...ref, alineacion })),
         guardarTiempo: (ref, tiempo) => fetcher('/eventos-set/tiempo', json('PUT', { ...ref, tiempo })),
+        /** "Esta marca en vivo está en este segundo del video": alinea todas las del partido. */
+        alinearEnVivo: (eventoId, segundo) => fetcher('/eventos-set/reloj-en-vivo', json('PUT', { eventoId, segundo })),
         guardarGanador: (ref, ganadorSet) => fetcher('/eventos-set/ganador', json('PUT', { ...ref, ganadorSet })),
         guardarVideos: (partidoId, videos) => fetcher(`/eventos-set/videos/${partidoId}`, json('PUT', { videos })),
         /** Cámaras propias de una planilla: no tocan el partido; se suman al oficializar. */

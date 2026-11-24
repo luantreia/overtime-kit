@@ -19,6 +19,9 @@ export interface Evento {
     motivo?: MotivoOut | null;
     por?: string | null;
     entra?: string | null;
+    origen?: 'manual' | 'cv' | 'en_vivo';
+    /** Sólo marcas en vivo: hora real (ISO) en que la recibió el servidor. */
+    hora?: string | null;
 }
 export interface JugadorAlineado {
     id: string;

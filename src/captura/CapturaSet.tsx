@@ -91,12 +91,23 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
   /** Editor en línea del tiempo del set (inicio y duración en m:ss). null = cerrado. */
   const [editTiempo, setEditTiempo] = useState<{ desde: string; dura: string; error?: string } | null>(null);
   const crono = useCronometro();
+  const enVivo = origen === 'en_vivo';
+  // En vivo el "ahora" es la hora real del servidor pasada por el reloj del partido (no el reloj
+  // de juego, que se frena en pausas): así el cursor coincide con donde el servidor guarda la marca.
+  const desfaseServidor = useRef(0);
+  const [, latir] = useState(0);
+  useEffect(() => {
+    if (!enVivo) return undefined;
+    const t = window.setInterval(() => latir((x) => x + 1), 1000);
+    return () => window.clearInterval(t);
+  }, [enVivo]);
   const claveSet = refSet.setPartido ?? refSet.planillaSet;
 
   const onCambioRef = useRef(onCambio);
   onCambioRef.current = onCambio;
 
   const aplicar = useCallback((e: EstadoSet) => {
+    if (e.ahoraServidor) desfaseServidor.current = e.ahoraServidor - Date.now();
     setEstado(e);
     setError(null);
     onCambioRef.current?.(e);
@@ -117,7 +128,11 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
     let vivo = true;
     setEstado(null);
     api.leer(refSet)
-      .then((e) => vivo && setEstado(e))
+      .then((e) => {
+        if (!vivo) return;
+        if (e.ahoraServidor) desfaseServidor.current = e.ahoraServidor - Date.now();
+        setEstado(e);
+      })
       .catch((e) => vivo && setError(e instanceof Error ? e.message : 'No se pudo cargar el set'));
     return () => {
       vivo = false;
@@ -130,8 +145,16 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
   const tiempo = estado?.set.tiempo ?? null;
   const inicio = tiempo?.desde ?? 0;
 
-  /** Segundo "ahora": el del video, o el cronómetro sumado al inicio del set. */
+  const segundoEnVivo = (): number => {
+    const reloj = estado?.relojEnVivo;
+    if (!reloj) return 0; // la primera marca en vivo ancla el reloj en 0
+    const ahoraMs = Date.now() + desfaseServidor.current;
+    return Math.max(0, Math.round((reloj.segundo + (ahoraMs - new Date(reloj.ancla).getTime()) / 1000) * 10) / 10);
+  };
+
+  /** Segundo "ahora": en vivo, el reloj del partido; si no, el del video o el cronómetro. */
   const ahora = (): number => {
+    if (enVivo) return segundoEnVivo();
     const v = obtenerTiempo?.();
     if (v != null) return Math.round(v * 10) / 10;
     return Math.round((inicio + crono.valor()) * 10) / 10;
@@ -145,7 +168,7 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
     () => (estado ? lineaDeTiempo(alineados, estado.eventos, inicio) : []),
     [estado, alineados, inicio],
   );
-  const tRef = obtenerTiempo ? (obtenerTiempo() ?? inicio) : inicio + crono.valor();
+  const tRef = enVivo ? segundoEnVivo() : obtenerTiempo ? (obtenerTiempo() ?? inicio) : inicio + crono.valor();
   const vivos = vivosPorLado(filas, tRef);
 
   // --- acciones -------------------------------------------------------------------------------
@@ -208,7 +231,7 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
         </span>
         {!soloLectura && (
           <span className="ml-auto flex flex-wrap items-center gap-2">
-            {!obtenerTiempo && (
+            {!obtenerTiempo && !enVivo && (
               <button type="button" onClick={crono.alternar} className="rounded bg-slate-100 px-2 py-1 font-semibold hover:bg-slate-200">
                 {crono.corriendo ? '⏸' : '▶'} {formatearSegundos(crono.valor())}
               </button>
@@ -438,6 +461,13 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
           })}
         </div>
 
+        {!enVivo && !soloLectura && obtenerTiempo && estado.relojEnVivo && !estado.relojEnVivo.alineado
+          && estado.eventos.some((e) => e.hora) && (
+          <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            Las marcas en vivo (●) todavía no están alineadas con el video. Llevá el video al momento
+            exacto de una de ellas y tocá «Es acá» en esa marca: se corren todas las del partido.
+          </p>
+        )}
         {estado.eventos.length > 0 && (
           <ol className="mt-3 flex flex-wrap gap-1">
             {estado.eventos.map((e) => (
@@ -447,6 +477,20 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
                   {etiquetaJugador(porId.get(e.jugador))}{' '}
                   {e.tipo === 'out' ? `· out ${e.motivo}${e.por ? ` · ${etiquetaJugador(porId.get(e.por))}` : ''}` : `· ${e.tipo}`}
                 </span>
+                {e.hora && <span title="Marcada en vivo" className="text-amber-600">●</span>}
+                {!enVivo && !soloLectura && obtenerTiempo && e.hora && estado.relojEnVivo && !estado.relojEnVivo.alineado && (
+                  <button
+                    type="button"
+                    disabled={guardando}
+                    onClick={() => {
+                      const s = obtenerTiempo();
+                      if (s != null) void correr(() => api.alinearEnVivo(e._id, Math.max(0, s)));
+                    }}
+                    className="font-semibold text-amber-700 hover:underline disabled:opacity-50"
+                  >
+                    Es acá
+                  </button>
+                )}
                 {!soloLectura && (
                   <button type="button" aria-label="Borrar marca" onClick={() => void correr(() => api.borrarEvento(e._id))} className="text-muted hover:text-red-700">✕</button>
                 )}
