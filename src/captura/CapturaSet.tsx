@@ -88,6 +88,8 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
   const [pendiente, setPendiente] = useState<{ jugador: string; equipo: string; motivo: MotivoOut; t: number } | null>(null);
   const [editandoAlineacion, setEditandoAlineacion] = useState(false);
   const [borradorAlineacion, setBorradorAlineacion] = useState<Set<string>>(new Set());
+  /** Editor en línea del tiempo del set (inicio y duración en m:ss). null = cerrado. */
+  const [editTiempo, setEditTiempo] = useState<{ desde: string; dura: string; error?: string } | null>(null);
   const crono = useCronometro();
   const claveSet = refSet.setPartido ?? refSet.planillaSet;
 
@@ -217,17 +219,66 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
             <button type="button" disabled={guardando} onClick={() => void marcarTiempo('hasta')} className="rounded bg-slate-800 px-2 py-1 font-semibold text-white hover:bg-slate-700 disabled:opacity-50">
               Termina acá
             </button>
-            <button
-              type="button"
-              className="rounded px-2 py-1 text-brand-700 hover:underline"
-              onClick={() => {
-                const d = leerSegundos(window.prompt('Duración del set (m:ss)', tiempo ? formatearSegundos(tiempo.hasta - tiempo.desde) : '') ?? '');
-                if (d != null && d > 0) void correr(() => api.guardarTiempo(refSet, { desde: inicio, hasta: inicio + d, origen, confirmado: true }));
-              }}
-            >
-              Cargar duración
-            </button>
+            {!editTiempo && (
+              <button
+                type="button"
+                className="rounded px-2 py-1 text-brand-700 hover:underline"
+                onClick={() =>
+                  setEditTiempo({
+                    desde: formatearSegundos(tiempo?.desde ?? inicio),
+                    dura: tiempo ? formatearSegundos(tiempo.hasta - tiempo.desde) : '',
+                  })
+                }
+              >
+                {tiempo ? 'Editar tiempo' : 'Cargar duración'}
+              </button>
+            )}
           </span>
+        )}
+        {!soloLectura && editTiempo && (
+          <form
+            className="flex w-full flex-wrap items-end gap-2 border-t border-slate-100 pt-2"
+            onSubmit={(ev) => {
+              ev.preventDefault();
+              const d0 = leerSegundos(editTiempo.desde);
+              const d = leerSegundos(editTiempo.dura);
+              if (d0 == null || d0 < 0) return setEditTiempo({ ...editTiempo, error: 'El inicio tiene que ser m:ss (por ejemplo 3:12).' });
+              if (d == null || d <= 0) return setEditTiempo({ ...editTiempo, error: 'La duración tiene que ser m:ss y mayor a 0.' });
+              setEditTiempo(null);
+              void correr(() => api.guardarTiempo(refSet, { desde: d0, hasta: d0 + d, origen, confirmado: true }));
+            }}
+            onKeyDown={(ev) => ev.key === 'Escape' && setEditTiempo(null)}
+          >
+            <label className="flex flex-col text-2xs font-semibold text-muted">
+              Empieza (m:ss)
+              <input
+                autoFocus
+                inputMode="numeric"
+                value={editTiempo.desde}
+                onChange={(ev) => setEditTiempo({ ...editTiempo, desde: ev.target.value, error: undefined })}
+                className="w-20 rounded border border-slate-300 px-2 py-1 text-sm font-normal tabular-nums text-slate-900"
+              />
+            </label>
+            <label className="flex flex-col text-2xs font-semibold text-muted">
+              Dura (m:ss)
+              <input
+                inputMode="numeric"
+                placeholder="3:00"
+                value={editTiempo.dura}
+                onChange={(ev) => setEditTiempo({ ...editTiempo, dura: ev.target.value, error: undefined })}
+                className="w-20 rounded border border-slate-300 px-2 py-1 text-sm font-normal tabular-nums text-slate-900"
+              />
+            </label>
+            <button type="submit" disabled={guardando} className="rounded bg-brand-600 px-2 py-1 font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+              Guardar
+            </button>
+            <button type="button" onClick={() => setEditTiempo(null)} className="rounded px-2 py-1 text-muted hover:underline">
+              Cancelar
+            </button>
+            {editTiempo.error && (
+              <p role="alert" className="w-full text-xs text-red-700">{editTiempo.error}</p>
+            )}
+          </form>
         )}
       </section>
 
