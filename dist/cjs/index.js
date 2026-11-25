@@ -9,7 +9,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DataTable = exports.EstadoAprobacion = exports.useConfirm = exports.ConfirmProvider = exports.useToast = exports.ToastProvider = exports.capasAbiertas = exports.getNextModalZIndex = exports.siguienteZIndex = exports.ErrorMessage = exports.EmptyState = exports.tabPanelId = exports.tabId = exports.TabPanel = exports.Tabs = exports.Spinner = exports.Table = exports.Card = exports.Toggle = exports.Textarea = exports.Select = exports.Input = exports.Badge = exports.Button = exports.ConfirmModal = exports.ModalBase = exports.Modal = exports.Overlay = void 0;
+exports.MobileTabBar = exports.validarPassword = exports.useEnvioAuth = exports.ResetPasswordForm = exports.ForgotPasswordForm = exports.LoginForm = exports.AuthSubmit = exports.AuthError = exports.AuthInput = exports.AuthLayout = exports.DataTable = exports.EstadoAprobacion = exports.useConfirm = exports.ConfirmProvider = exports.useToast = exports.ToastProvider = exports.capasAbiertas = exports.getNextModalZIndex = exports.siguienteZIndex = exports.ErrorMessage = exports.EmptyState = exports.tabPanelId = exports.tabId = exports.TabPanel = exports.Tabs = exports.Spinner = exports.Table = exports.Card = exports.Toggle = exports.Textarea = exports.Select = exports.Input = exports.Badge = exports.Button = exports.ConfirmModal = exports.ModalBase = exports.Modal = exports.Overlay = void 0;
 // La primitiva de capa. Todo lo nuevo se escribe con ésta.
 var Overlay_1 = require("./components/Overlay/Overlay");
 Object.defineProperty(exports, "Overlay", { enumerable: true, get: function () { return __importDefault(Overlay_1).default; } });
@@ -74,4 +74,18 @@ Object.defineProperty(exports, "EstadoAprobacion", { enumerable: true, get: func
 // Reemplaza los `<table>` escritos a mano; `Table` queda por compatibilidad.
 var DataTable_1 = require("./components/DataTable/DataTable");
 Object.defineProperty(exports, "DataTable", { enumerable: true, get: function () { return __importDefault(DataTable_1).default; } });
+// Pantallas de acceso. Sólo UI: cada app pasa su `login()`/servicio y decide a dónde navegar.
+var Auth_1 = require("./components/Auth/Auth");
+Object.defineProperty(exports, "AuthLayout", { enumerable: true, get: function () { return Auth_1.AuthLayout; } });
+Object.defineProperty(exports, "AuthInput", { enumerable: true, get: function () { return Auth_1.AuthInput; } });
+Object.defineProperty(exports, "AuthError", { enumerable: true, get: function () { return Auth_1.AuthError; } });
+Object.defineProperty(exports, "AuthSubmit", { enumerable: true, get: function () { return Auth_1.AuthSubmit; } });
+Object.defineProperty(exports, "LoginForm", { enumerable: true, get: function () { return Auth_1.LoginForm; } });
+Object.defineProperty(exports, "ForgotPasswordForm", { enumerable: true, get: function () { return Auth_1.ForgotPasswordForm; } });
+Object.defineProperty(exports, "ResetPasswordForm", { enumerable: true, get: function () { return Auth_1.ResetPasswordForm; } });
+Object.defineProperty(exports, "useEnvioAuth", { enumerable: true, get: function () { return Auth_1.useEnvioAuth; } });
+Object.defineProperty(exports, "validarPassword", { enumerable: true, get: function () { return Auth_1.validarPassword; } });
+// Barra de navegación inferior en mobile. No depende del router: recibe el `Link` de la app.
+var MobileTabBar_1 = require("./components/MobileTabBar/MobileTabBar");
+Object.defineProperty(exports, "MobileTabBar", { enumerable: true, get: function () { return __importDefault(MobileTabBar_1).default; } });
 //# sourceMappingURL=index.js.map

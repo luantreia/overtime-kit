@@ -42,4 +42,8 @@ export { default as EstadoAprobacion } from './components/EstadoAprobacion/Estad
 export type { EstadoAprobacionProps, EstadoAprobacionValor } from './components/EstadoAprobacion/EstadoAprobacion';
 export { default as DataTable } from './components/DataTable/DataTable';
 export type { DataTableProps, DataTableColumn, DataTableSort } from './components/DataTable/DataTable';
+export { AuthLayout, AuthInput, AuthError, AuthSubmit, LoginForm, ForgotPasswordForm, ResetPasswordForm, useEnvioAuth, validarPassword, } from './components/Auth/Auth';
+export type { AuthLayoutProps, AuthInputProps, LoginFormProps, ForgotPasswordFormProps, ResetPasswordFormProps } from './components/Auth/Auth';
+export { default as MobileTabBar } from './components/MobileTabBar/MobileTabBar';
+export type { MobileTabBarProps, TabBarItem, LinkLike } from './components/MobileTabBar/MobileTabBar';
 //# sourceMappingURL=index.d.ts.map

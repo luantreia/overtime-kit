@@ -68,3 +68,21 @@ export type { EstadoAprobacionProps, EstadoAprobacionValor } from './components/
 // Reemplaza los `<table>` escritos a mano; `Table` queda por compatibilidad.
 export { default as DataTable } from './components/DataTable/DataTable';
 export type { DataTableProps, DataTableColumn, DataTableSort } from './components/DataTable/DataTable';
+
+// Pantallas de acceso. Sólo UI: cada app pasa su `login()`/servicio y decide a dónde navegar.
+export {
+  AuthLayout,
+  AuthInput,
+  AuthError,
+  AuthSubmit,
+  LoginForm,
+  ForgotPasswordForm,
+  ResetPasswordForm,
+  useEnvioAuth,
+  validarPassword,
+} from './components/Auth/Auth';
+export type { AuthLayoutProps, AuthInputProps, LoginFormProps, ForgotPasswordFormProps, ResetPasswordFormProps } from './components/Auth/Auth';
+
+// Barra de navegación inferior en mobile. No depende del router: recibe el `Link` de la app.
+export { default as MobileTabBar } from './components/MobileTabBar/MobileTabBar';
+export type { MobileTabBarProps, TabBarItem, LinkLike } from './components/MobileTabBar/MobileTabBar';
