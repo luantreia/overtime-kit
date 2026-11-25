@@ -365,11 +365,11 @@ function DataTable<T>({
     cuerpo = (
       <>
         <div className="sm:hidden">{tarjetas}</div>
-        <div className={`hidden overflow-auto sm:block ${maxHeightClassName}`}>{tabla}</div>
+        <div className={`relative hidden overflow-auto sm:block ${maxHeightClassName}`}>{tabla}</div>
       </>
     );
   } else {
-    cuerpo = <div className={`overflow-auto ${maxHeightClassName}`}>{tabla}</div>;
+    cuerpo = <div className={`relative overflow-auto ${maxHeightClassName}`}>{tabla}</div>;
   }
 
   const mostrarPaginador = !loading && !error && pageSize > 0 && ordenadas.length > pageSize;
