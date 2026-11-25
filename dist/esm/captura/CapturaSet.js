@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { formatearSegundos, leerSegundos } from './reloj';
+import { formatearSegundos, leerSegundos, etiquetaTiempoDeJuego } from './reloj';
 import { estaVivo, lineaDeTiempo, MOTIVOS, sugerirReingreso, vivosPorLado, } from './supervivencia';
 const COLORES = ['bg-sky-500', 'bg-amber-500'];
 const TEXTO = ['text-sky-700', 'text-amber-700'];
@@ -35,7 +35,7 @@ function useCronometro() {
     };
 }
 const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloLectura, origen = 'manual', onCambio, className = '', }) => {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g;
     const [estado, setEstado] = useState(null);
     const [error, setError] = useState(null);
     const [guardando, setGuardando] = useState(false);
@@ -46,6 +46,10 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
     const [editTiempo, setEditTiempo] = useState(null);
     const crono = useCronometro();
     const enVivo = origen === 'en_vivo';
+    // Minuto de juego de un segundo del video. Sólo sets oficiales: el reloj de juego y el reloj en
+    // vivo son del partido, y una planilla puede tener sus propias cámaras.
+    const juegoDe = (t) => refSet.setPartido ? etiquetaTiempoDeJuego(estado === null || estado === void 0 ? void 0 : estado.relojJuego, estado === null || estado === void 0 ? void 0 : estado.relojEnVivo, t) : null;
+    const inicios = ((_a = estado === null || estado === void 0 ? void 0 : estado.relojJuego) !== null && _a !== void 0 ? _a : []).filter((x) => x.tipo === 'inicio');
     // En vivo el "ahora" es la hora real del servidor pasada por el reloj del partido (no el reloj
     // de juego, que se frena en pausas): así el cursor coincide con donde el servidor guarda la marca.
     const desfaseServidor = useRef(0);
@@ -56,7 +60,7 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
         const t = window.setInterval(() => latir((x) => x + 1), 1000);
         return () => window.clearInterval(t);
     }, [enVivo]);
-    const claveSet = (_a = refSet.setPartido) !== null && _a !== void 0 ? _a : refSet.planillaSet;
+    const claveSet = (_b = refSet.setPartido) !== null && _b !== void 0 ? _b : refSet.planillaSet;
     const onCambioRef = useRef(onCambio);
     onCambioRef.current = onCambio;
     const aplicar = useCallback((e) => {
@@ -98,8 +102,8 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [api, claveSet]);
     const porId = useMemo(() => new Map(jugadores.map((j) => [j.id, j])), [jugadores]);
-    const tiempo = (_b = estado === null || estado === void 0 ? void 0 : estado.set.tiempo) !== null && _b !== void 0 ? _b : null;
-    const inicio = (_c = tiempo === null || tiempo === void 0 ? void 0 : tiempo.desde) !== null && _c !== void 0 ? _c : 0;
+    const tiempo = (_c = estado === null || estado === void 0 ? void 0 : estado.set.tiempo) !== null && _c !== void 0 ? _c : null;
+    const inicio = (_d = tiempo === null || tiempo === void 0 ? void 0 : tiempo.desde) !== null && _d !== void 0 ? _d : 0;
     const segundoEnVivo = () => {
         const reloj = estado === null || estado === void 0 ? void 0 : estado.relojEnVivo;
         if (!reloj)
@@ -118,7 +122,7 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
     };
     const alineados = useMemo(() => { var _a; return ((_a = estado === null || estado === void 0 ? void 0 : estado.alineacion) !== null && _a !== void 0 ? _a : []).map((a) => ({ id: a.jugador, lado: a.equipo })); }, [estado]);
     const filas = useMemo(() => (estado ? lineaDeTiempo(alineados, estado.eventos, inicio) : []), [estado, alineados, inicio]);
-    const tRef = enVivo ? segundoEnVivo() : obtenerTiempo ? ((_d = obtenerTiempo()) !== null && _d !== void 0 ? _d : inicio) : inicio + crono.valor();
+    const tRef = enVivo ? segundoEnVivo() : obtenerTiempo ? ((_e = obtenerTiempo()) !== null && _e !== void 0 ? _e : inicio) : inicio + crono.valor();
     const vivos = vivosPorLado(filas, tRef);
     // --- acciones -------------------------------------------------------------------------------
     const marcarTiempo = (cual, valor = ahora()) => {
@@ -163,7 +167,7 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
         return _jsx("p", { className: `text-sm text-red-700 ${className}`, children: error });
     if (!estado)
         return _jsx("p", { className: `text-sm text-muted ${className}`, children: "Cargando set\u2026" });
-    const fin = (_e = tiempo === null || tiempo === void 0 ? void 0 : tiempo.hasta) !== null && _e !== void 0 ? _e : Math.max(inicio + 60, ...estado.eventos.map((e) => e.t + 5), tRef);
+    const fin = (_f = tiempo === null || tiempo === void 0 ? void 0 : tiempo.hasta) !== null && _f !== void 0 ? _f : Math.max(inicio + 60, ...estado.eventos.map((e) => e.t + 5), tRef);
     const dur = Math.max(1, fin - inicio);
     const pct = (t) => `${Math.max(0, Math.min(100, ((t - inicio) / dur) * 100))}%`;
     const idxEquipo = (id) => Math.max(0, equipos.findIndex((e) => e.id === id));
@@ -207,12 +211,17 @@ const CapturaSet = ({ api, refSet, equipos, jugadores, obtenerTiempo, irA, soloL
                             const i = idxEquipo(f.lado);
                             const marcas = estado.eventos.filter((e) => e.jugador === f.id && e.tipo === 'out');
                             return (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("span", { className: `w-28 shrink-0 truncate text-2xs ${TEXTO[i]}`, children: etiquetaJugador(porId.get(f.id)) }), _jsxs("div", { className: "relative h-3 flex-1 rounded bg-slate-100", children: [f.tramos.map(([a, b], k) => (_jsx("i", { className: `absolute inset-y-0 rounded ${COLORES[i]}`, style: { left: pct(a), width: `calc(${pct(b !== null && b !== void 0 ? b : fin)} - ${pct(a)})` } }, k))), marcas.map((m) => (_jsx("button", { type: "button", onClick: () => irA === null || irA === void 0 ? void 0 : irA(m.t), title: `${formatearSegundos(m.t)} · out por ${m.motivo}`, className: "absolute -top-0.5 h-4 w-1.5 -translate-x-1/2 rounded-sm bg-red-600", style: { left: pct(m.t) } }, m._id)))] })] }, f.id));
-                        }) }), !enVivo && !soloLectura && obtenerTiempo && estado.relojEnVivo && !estado.relojEnVivo.alineado
-                        && estado.eventos.some((e) => e.hora) && (_jsx("p", { className: "mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900", children: "Las marcas en vivo (\u25CF) todav\u00EDa no est\u00E1n alineadas con el video. Llev\u00E1 el video al momento exacto de una de ellas y toc\u00E1 \u00ABEs ac\u00E1\u00BB en esa marca: se corren todas las del partido." })), estado.eventos.length > 0 && (_jsx("ol", { className: "mt-3 flex flex-wrap gap-1", children: estado.eventos.map((e) => (_jsxs("li", { className: "flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-2xs", children: [_jsx("button", { type: "button", onClick: () => irA === null || irA === void 0 ? void 0 : irA(e.t), className: "tabular-nums hover:underline", children: formatearSegundos(e.t) }), _jsxs("span", { children: [etiquetaJugador(porId.get(e.jugador)), ' ', e.tipo === 'out' ? `· out ${e.motivo}${e.por ? ` · ${etiquetaJugador(porId.get(e.por))}` : ''}` : `· ${e.tipo}`] }), e.hora && _jsx("span", { title: "Marcada en vivo", className: "text-amber-600", children: "\u25CF" }), !enVivo && !soloLectura && obtenerTiempo && e.hora && estado.relojEnVivo && !estado.relojEnVivo.alineado && (_jsx("button", { type: "button", disabled: guardando, onClick: () => {
+                        }) }), !enVivo && !soloLectura && obtenerTiempo && refSet.setPartido && estado.relojEnVivo && !estado.relojEnVivo.alineado
+                        && (estado.eventos.some((e) => e.hora) || inicios.length > 0) && (_jsxs("div", { className: "mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900", children: [_jsx("p", { children: "Lo marcado en vivo (\u25CF) todav\u00EDa no est\u00E1 alineado con el video. Llev\u00E1 el video al momento exacto de una marca en vivo, o del arranque de un tiempo, y toc\u00E1 \u00ABEs ac\u00E1\u00BB: se corre todo lo del partido." }), inicios.length > 0 && (_jsx("p", { className: "mt-1 flex flex-wrap gap-2", children: inicios.map((x) => (_jsxs("button", { type: "button", disabled: guardando, onClick: () => {
+                                        const s = obtenerTiempo();
+                                        if (s != null && refSet.setPartido) {
+                                            void correr(() => api.alinearEnVivoConReloj(refSet.setPartido, x.hora, Math.max(0, s)));
+                                        }
+                                    }, className: "rounded bg-white px-2 py-0.5 font-semibold text-amber-800 ring-1 ring-amber-300 hover:bg-amber-100 disabled:opacity-50", children: ["Arranque del ", x.periodo, "T es ac\u00E1"] }, x.hora))) }))] })), estado.eventos.length > 0 && (_jsx("ol", { className: "mt-3 flex flex-wrap gap-1", children: estado.eventos.map((e) => (_jsxs("li", { className: "flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-2xs", children: [_jsx("button", { type: "button", onClick: () => irA === null || irA === void 0 ? void 0 : irA(e.t), className: "tabular-nums hover:underline", children: formatearSegundos(e.t) }), _jsxs("span", { children: [etiquetaJugador(porId.get(e.jugador)), ' ', e.tipo === 'out' ? `· out ${e.motivo}${e.por ? ` · ${etiquetaJugador(porId.get(e.por))}` : ''}` : `· ${e.tipo}`] }), e.hora && _jsx("span", { title: "Marcada en vivo", className: "text-amber-600", children: "\u25CF" }), juegoDe(e.t) && _jsx("span", { className: "tabular-nums text-muted", title: "Tiempo de juego", children: juegoDe(e.t) }), !enVivo && !soloLectura && obtenerTiempo && e.hora && estado.relojEnVivo && !estado.relojEnVivo.alineado && (_jsx("button", { type: "button", disabled: guardando, onClick: () => {
                                         const s = obtenerTiempo();
                                         if (s != null)
                                             void correr(() => api.alinearEnVivo(e._id, Math.max(0, s)));
-                                    }, className: "font-semibold text-amber-700 hover:underline disabled:opacity-50", children: "Es ac\u00E1" })), !soloLectura && (_jsx("button", { type: "button", "aria-label": "Borrar marca", onClick: () => void correr(() => api.borrarEvento(e._id)), className: "text-muted hover:text-red-700", children: "\u2715" }))] }, e._id))) })), _jsx(GanadorSugerido, { estado: estado, equipos: equipos, soloLectura: soloLectura, guardando: guardando, onAplicar: (g) => void correr(() => api.guardarGanador(refSet, g)) }), ((_f = estado.sync) === null || _f === void 0 ? void 0 : _f.sincronizado) && (_jsx("p", { className: "mt-2 text-2xs text-muted", children: "Estad\u00EDsticas del set actualizadas desde las marcas." }))] })] }));
+                                    }, className: "font-semibold text-amber-700 hover:underline disabled:opacity-50", children: "Es ac\u00E1" })), !soloLectura && (_jsx("button", { type: "button", "aria-label": "Borrar marca", onClick: () => void correr(() => api.borrarEvento(e._id)), className: "text-muted hover:text-red-700", children: "\u2715" }))] }, e._id))) })), _jsx(GanadorSugerido, { estado: estado, equipos: equipos, soloLectura: soloLectura, guardando: guardando, onAplicar: (g) => void correr(() => api.guardarGanador(refSet, g)) }), ((_g = estado.sync) === null || _g === void 0 ? void 0 : _g.sincronizado) && (_jsx("p", { className: "mt-2 text-2xs text-muted", children: "Estad\u00EDsticas del set actualizadas desde las marcas." }))] })] }));
 };
 /**
  * El ganador que dicen las marcas, contra el cargado. Se aplica con un clic y nunca solo: las

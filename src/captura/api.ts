@@ -1,5 +1,5 @@
 import type { Evento, MotivoOut, TipoEvento } from './supervivencia';
-import type { VideoPartido } from './reloj';
+import type { RegistroRelojJuego, RelojEnVivo, VideoPartido } from './reloj';
 
 /**
  * Cliente de `/api/eventos-set`. El kit no sabe de URLs ni de tokens: cada app le pasa su
@@ -36,7 +36,9 @@ export interface EstadoSet {
    * Reloj de las marcas en vivo del partido: segundo = segundo + (hora − ancla) / 1000.
    * null mientras no haya ninguna marca en vivo. Opcional en backends viejos.
    */
-  relojEnVivo?: { ancla: string; segundo: number; alineado: boolean } | null;
+  relojEnVivo?: RelojEnVivo | null;
+  /** Reloj de juego registrado en Overtime-Partido (vacío si no se usó). Opcional en backends viejos. */
+  relojJuego?: RegistroRelojJuego[];
   /** Hora del servidor al responder (ms), para calcular el "ahora" en vivo igual que él. */
   ahoraServidor?: number;
 }
@@ -67,6 +69,9 @@ export function crearApiCaptura(fetcher: Fetcher) {
     /** "Esta marca en vivo está en este segundo del video": alinea todas las del partido. */
     alinearEnVivo: (eventoId: string, segundo: number) =>
       fetcher<EstadoSet>('/eventos-set/reloj-en-vivo', json('PUT', { eventoId, segundo })),
+    /** Lo mismo, pero con un momento del reloj de juego (p. ej. el inicio del 1T). */
+    alinearEnVivoConReloj: (setPartido: string, hora: string, segundo: number) =>
+      fetcher<EstadoSet>('/eventos-set/reloj-en-vivo', json('PUT', { setPartido, hora, segundo })),
     guardarGanador: (ref: RefSet, ganadorSet: GanadorSet) =>
       fetcher<EstadoSet>('/eventos-set/ganador', json('PUT', { ...ref, ganadorSet })),
     guardarVideos: (partidoId: string, videos: VideoPartido[]) =>

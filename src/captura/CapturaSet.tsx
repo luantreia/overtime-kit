@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ApiCaptura, EstadoSet, RefSet } from './api';
-import { formatearSegundos, leerSegundos } from './reloj';
+import { formatearSegundos, leerSegundos, etiquetaTiempoDeJuego } from './reloj';
 import {
   estaVivo,
   lineaDeTiempo,
@@ -92,6 +92,11 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
   const [editTiempo, setEditTiempo] = useState<{ desde: string; dura: string; error?: string } | null>(null);
   const crono = useCronometro();
   const enVivo = origen === 'en_vivo';
+  // Minuto de juego de un segundo del video. Sólo sets oficiales: el reloj de juego y el reloj en
+  // vivo son del partido, y una planilla puede tener sus propias cámaras.
+  const juegoDe = (t: number) =>
+    refSet.setPartido ? etiquetaTiempoDeJuego(estado?.relojJuego, estado?.relojEnVivo, t) : null;
+  const inicios = (estado?.relojJuego ?? []).filter((x) => x.tipo === 'inicio');
   // En vivo el "ahora" es la hora real del servidor pasada por el reloj del partido (no el reloj
   // de juego, que se frena en pausas): así el cursor coincide con donde el servidor guarda la marca.
   const desfaseServidor = useRef(0);
@@ -461,12 +466,35 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
           })}
         </div>
 
-        {!enVivo && !soloLectura && obtenerTiempo && estado.relojEnVivo && !estado.relojEnVivo.alineado
-          && estado.eventos.some((e) => e.hora) && (
-          <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
-            Las marcas en vivo (●) todavía no están alineadas con el video. Llevá el video al momento
-            exacto de una de ellas y tocá «Es acá» en esa marca: se corren todas las del partido.
-          </p>
+        {!enVivo && !soloLectura && obtenerTiempo && refSet.setPartido && estado.relojEnVivo && !estado.relojEnVivo.alineado
+          && (estado.eventos.some((e) => e.hora) || inicios.length > 0) && (
+          <div className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            <p>
+              Lo marcado en vivo (●) todavía no está alineado con el video. Llevá el video al momento
+              exacto de una marca en vivo, o del arranque de un tiempo, y tocá «Es acá»: se corre todo
+              lo del partido.
+            </p>
+            {inicios.length > 0 && (
+              <p className="mt-1 flex flex-wrap gap-2">
+                {inicios.map((x) => (
+                  <button
+                    key={x.hora}
+                    type="button"
+                    disabled={guardando}
+                    onClick={() => {
+                      const s = obtenerTiempo();
+                      if (s != null && refSet.setPartido) {
+                        void correr(() => api.alinearEnVivoConReloj(refSet.setPartido as string, x.hora, Math.max(0, s)));
+                      }
+                    }}
+                    className="rounded bg-white px-2 py-0.5 font-semibold text-amber-800 ring-1 ring-amber-300 hover:bg-amber-100 disabled:opacity-50"
+                  >
+                    Arranque del {x.periodo}T es acá
+                  </button>
+                ))}
+              </p>
+            )}
+          </div>
         )}
         {estado.eventos.length > 0 && (
           <ol className="mt-3 flex flex-wrap gap-1">
@@ -478,6 +506,7 @@ const CapturaSet: React.FC<CapturaSetProps> = ({
                   {e.tipo === 'out' ? `· out ${e.motivo}${e.por ? ` · ${etiquetaJugador(porId.get(e.por))}` : ''}` : `· ${e.tipo}`}
                 </span>
                 {e.hora && <span title="Marcada en vivo" className="text-amber-600">●</span>}
+                {juegoDe(e.t) && <span className="tabular-nums text-muted" title="Tiempo de juego">{juegoDe(e.t)}</span>}
                 {!enVivo && !soloLectura && obtenerTiempo && e.hora && estado.relojEnVivo && !estado.relojEnVivo.alineado && (
                   <button
                     type="button"

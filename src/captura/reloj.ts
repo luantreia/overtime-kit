@@ -78,3 +78,52 @@ export function extraerYoutubeId(input?: string | null): string | null {
   const m = url.pathname.match(/\/(?:embed|shorts|live|v)\/([\w-]{11})/);
   return m ? m[1] : null;
 }
+
+/**
+ * Reloj de juego registrado por Overtime-Partido (Partido.relojJuego): cada arranque, pausa,
+ * reanudación, ajuste y cambio de tiempo con la hora real del servidor.
+ */
+export interface RegistroRelojJuego {
+  tipo: 'inicio' | 'pausa' | 'reanuda' | 'ajuste' | 'cambio_tiempo';
+  periodo: number;
+  hora: string;
+  restante: number;
+  corriendo?: boolean;
+  motivo?: 'time_out' | 'revision' | 'otro' | null;
+  lado?: 'local' | 'visitante' | null;
+}
+
+export interface RelojEnVivo {
+  ancla: string;
+  segundo: number;
+  alineado: boolean;
+}
+
+const msDe = (d: string | number | Date) => new Date(d).getTime();
+
+/** Hora real (ms) de un segundo del video, según el reloj en vivo. */
+export const horaDeSegundo = (reloj: RelojEnVivo, segundo: number) => msDe(reloj.ancla) + (segundo - reloj.segundo) * 1000;
+
+/** Segundo del video de una hora real, según el reloj en vivo. */
+export const segundoDeHora = (reloj: RelojEnVivo, hora: string | number | Date) =>
+  reloj.segundo + (msDe(hora) - msDe(reloj.ancla)) / 1000;
+
+/**
+ * Estado del reloj de juego a una hora real. null si a esa hora todavía no había arrancado.
+ * Igual que tiempoDeJuegoEnHora en el backend (utils/relojJuego.js).
+ */
+export function tiempoDeJuegoEnHora(registros: RegistroRelojJuego[], hora: number) {
+  const previos = registros.filter((x) => msDe(x.hora) <= hora).sort((a, b) => msDe(a.hora) - msDe(b.hora));
+  if (!previos.some((x) => x.tipo === 'inicio')) return null;
+  const ultimo = previos[previos.length - 1];
+  const corriendo = ultimo.tipo === 'inicio' || ultimo.tipo === 'reanuda' || (ultimo.tipo === 'ajuste' && Boolean(ultimo.corriendo));
+  const transcurrido = corriendo ? (hora - msDe(ultimo.hora)) / 1000 : 0;
+  return { periodo: ultimo.periodo, restante: Math.max(0, Math.round((ultimo.restante - transcurrido) * 10) / 10), corriendo };
+}
+
+/** "1T 12:34" para un segundo del video, o null si no hay reloj de juego en ese momento. */
+export function etiquetaTiempoDeJuego(registros: RegistroRelojJuego[] | undefined, reloj: RelojEnVivo | null | undefined, segundo: number) {
+  if (!reloj || !registros?.length) return null;
+  const e = tiempoDeJuegoEnHora(registros, horaDeSegundo(reloj, segundo));
+  return e ? `${e.periodo}T ${formatearSegundos(e.restante)}` : null;
+}

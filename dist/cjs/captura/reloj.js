@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extraerYoutubeId = exports.leerSegundos = exports.formatearSegundos = exports.partidoACamara = exports.camaraAPartido = void 0;
+exports.etiquetaTiempoDeJuego = exports.tiempoDeJuegoEnHora = exports.segundoDeHora = exports.horaDeSegundo = exports.extraerYoutubeId = exports.leerSegundos = exports.formatearSegundos = exports.partidoACamara = exports.camaraAPartido = void 0;
 const tramoMasCercano = (tramos, s, clave) => {
     var _a;
     return (_a = tramos.find((t) => s >= clave(t)[0] && s <= clave(t)[1])) !== null && _a !== void 0 ? _a : tramos.reduce((m, t) => (Math.abs(clave(t)[0] - s) < Math.abs(clave(m)[0] - s) ? t : m));
@@ -76,4 +76,33 @@ function extraerYoutubeId(input) {
     return m ? m[1] : null;
 }
 exports.extraerYoutubeId = extraerYoutubeId;
+const msDe = (d) => new Date(d).getTime();
+/** Hora real (ms) de un segundo del video, según el reloj en vivo. */
+const horaDeSegundo = (reloj, segundo) => msDe(reloj.ancla) + (segundo - reloj.segundo) * 1000;
+exports.horaDeSegundo = horaDeSegundo;
+/** Segundo del video de una hora real, según el reloj en vivo. */
+const segundoDeHora = (reloj, hora) => reloj.segundo + (msDe(hora) - msDe(reloj.ancla)) / 1000;
+exports.segundoDeHora = segundoDeHora;
+/**
+ * Estado del reloj de juego a una hora real. null si a esa hora todavía no había arrancado.
+ * Igual que tiempoDeJuegoEnHora en el backend (utils/relojJuego.js).
+ */
+function tiempoDeJuegoEnHora(registros, hora) {
+    const previos = registros.filter((x) => msDe(x.hora) <= hora).sort((a, b) => msDe(a.hora) - msDe(b.hora));
+    if (!previos.some((x) => x.tipo === 'inicio'))
+        return null;
+    const ultimo = previos[previos.length - 1];
+    const corriendo = ultimo.tipo === 'inicio' || ultimo.tipo === 'reanuda' || (ultimo.tipo === 'ajuste' && Boolean(ultimo.corriendo));
+    const transcurrido = corriendo ? (hora - msDe(ultimo.hora)) / 1000 : 0;
+    return { periodo: ultimo.periodo, restante: Math.max(0, Math.round((ultimo.restante - transcurrido) * 10) / 10), corriendo };
+}
+exports.tiempoDeJuegoEnHora = tiempoDeJuegoEnHora;
+/** "1T 12:34" para un segundo del video, o null si no hay reloj de juego en ese momento. */
+function etiquetaTiempoDeJuego(registros, reloj, segundo) {
+    if (!reloj || !(registros === null || registros === void 0 ? void 0 : registros.length))
+        return null;
+    const e = tiempoDeJuegoEnHora(registros, (0, exports.horaDeSegundo)(reloj, segundo));
+    return e ? `${e.periodo}T ${formatearSegundos(e.restante)}` : null;
+}
+exports.etiquetaTiempoDeJuego = etiquetaTiempoDeJuego;
 //# sourceMappingURL=reloj.js.map

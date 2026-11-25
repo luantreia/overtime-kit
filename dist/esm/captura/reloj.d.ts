@@ -24,4 +24,37 @@ export declare function formatearSegundos(s: number | null | undefined): string;
 export declare function leerSegundos(texto: string): number | null;
 /** Extrae el ID de YouTube de cualquier forma de link (watch?v=, youtu.be, /live/, /embed/...). */
 export declare function extraerYoutubeId(input?: string | null): string | null;
+/**
+ * Reloj de juego registrado por Overtime-Partido (Partido.relojJuego): cada arranque, pausa,
+ * reanudación, ajuste y cambio de tiempo con la hora real del servidor.
+ */
+export interface RegistroRelojJuego {
+    tipo: 'inicio' | 'pausa' | 'reanuda' | 'ajuste' | 'cambio_tiempo';
+    periodo: number;
+    hora: string;
+    restante: number;
+    corriendo?: boolean;
+    motivo?: 'time_out' | 'revision' | 'otro' | null;
+    lado?: 'local' | 'visitante' | null;
+}
+export interface RelojEnVivo {
+    ancla: string;
+    segundo: number;
+    alineado: boolean;
+}
+/** Hora real (ms) de un segundo del video, según el reloj en vivo. */
+export declare const horaDeSegundo: (reloj: RelojEnVivo, segundo: number) => number;
+/** Segundo del video de una hora real, según el reloj en vivo. */
+export declare const segundoDeHora: (reloj: RelojEnVivo, hora: string | number | Date) => number;
+/**
+ * Estado del reloj de juego a una hora real. null si a esa hora todavía no había arrancado.
+ * Igual que tiempoDeJuegoEnHora en el backend (utils/relojJuego.js).
+ */
+export declare function tiempoDeJuegoEnHora(registros: RegistroRelojJuego[], hora: number): {
+    periodo: number;
+    restante: number;
+    corriendo: boolean;
+} | null;
+/** "1T 12:34" para un segundo del video, o null si no hay reloj de juego en ese momento. */
+export declare function etiquetaTiempoDeJuego(registros: RegistroRelojJuego[] | undefined, reloj: RelojEnVivo | null | undefined, segundo: number): string | null;
 //# sourceMappingURL=reloj.d.ts.map
