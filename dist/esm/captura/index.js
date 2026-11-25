@@ -16,4 +16,5 @@ export { default as CamarasPartido } from './CamarasPartido';
 export * from './supervivencia';
 export * from './reloj';
 export { default as CapturaSetOficial } from './CapturaSetOficial';
+export { default as PartidoCompleto } from './PartidoCompleto';
 //# sourceMappingURL=index.js.map

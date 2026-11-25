@@ -17,7 +17,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CapturaSetOficial = exports.CamarasPartido = exports.CapturaSet = exports.ReproductorPartido = exports.crearApiCaptura = void 0;
+exports.PartidoCompleto = exports.CapturaSetOficial = exports.CamarasPartido = exports.CapturaSet = exports.ReproductorPartido = exports.crearApiCaptura = void 0;
 /**
  * overtime-kit/captura · Capa 1 (dominio)
  *
@@ -41,4 +41,6 @@ __exportStar(require("./supervivencia"), exports);
 __exportStar(require("./reloj"), exports);
 var CapturaSetOficial_1 = require("./CapturaSetOficial");
 Object.defineProperty(exports, "CapturaSetOficial", { enumerable: true, get: function () { return __importDefault(CapturaSetOficial_1).default; } });
+var PartidoCompleto_1 = require("./PartidoCompleto");
+Object.defineProperty(exports, "PartidoCompleto", { enumerable: true, get: function () { return __importDefault(PartidoCompleto_1).default; } });
 //# sourceMappingURL=index.js.map

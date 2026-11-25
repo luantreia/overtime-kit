@@ -26,3 +26,6 @@ export * from './reloj';
 
 export { default as CapturaSetOficial } from './CapturaSetOficial';
 export type { CapturaSetOficialProps } from './CapturaSetOficial';
+
+export { default as PartidoCompleto } from './PartidoCompleto';
+export type { PartidoCompletoProps, SetDelPartido } from './PartidoCompleto';
