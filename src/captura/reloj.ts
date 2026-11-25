@@ -127,3 +127,32 @@ export function etiquetaTiempoDeJuego(registros: RegistroRelojJuego[] | undefine
   const e = tiempoDeJuegoEnHora(registros, horaDeSegundo(reloj, segundo));
   return e ? `${e.periodo}T ${formatearSegundos(e.restante)}` : null;
 }
+
+/**
+ * Inicio y fin del partido en el tiempo del partido (el eje de todo). origen 'en_vivo' = lo marcó la
+ * consola; 'manual' = marcado en diferido sobre un video; 'cv' = propuesto por un modelo.
+ * `hasta` null mientras no terminó. Ver overtime/src/models/Partido/tiempoVideo.js.
+ */
+export interface VentanaPartido {
+  desde: number | null;
+  hasta: number | null;
+  origen?: 'manual' | 'cv' | 'en_vivo';
+  confirmado?: boolean;
+}
+
+/**
+ * El video perdió un pedazo (se cortó la transmisión, se editó un tiempo muerto): desde el segundo
+ * de cámara `desde` en adelante, segundo de partido = segundo de cámara + `nuevoD`. Lo anterior
+ * queda como estaba. Un video sin tramos tiene uno implícito con d = 0 que se vuelve explícito.
+ * Puro: devuelve los tramos nuevos.
+ */
+export function cortarDesde(video: VideoPartido, desde: number, nuevoD: number): TramoCamara[] {
+  const fin = Math.max(video.duracion ?? 0, desde + 1, ...(video.tramos ?? []).map((t) => t.cam[1]), 24 * 3600);
+  const tramos = video.tramos?.length ? video.tramos : [{ cam: [0, fin] as [number, number], d: 0 }];
+  const antes = tramos
+    .filter((t) => t.cam[0] < desde)
+    .map((t) => ({ cam: [t.cam[0], Math.min(t.cam[1], desde)] as [number, number], d: t.d }))
+    .filter((t) => t.cam[1] > t.cam[0]);
+  const ultimo = Math.max(fin, ...tramos.map((t) => t.cam[1]));
+  return [...antes, { cam: [desde, ultimo], d: nuevoD }];
+}

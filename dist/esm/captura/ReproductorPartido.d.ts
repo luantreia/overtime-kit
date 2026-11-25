@@ -32,6 +32,11 @@ export interface ReproductorPartidoHandle {
     /** Lleva la cámara actual a ese segundo de partido (si esa cámara lo tiene). */
     irA(segPartido: number): void;
     pausar(): void;
+    /** Cámara que se está viendo y su propio segundo (para cortar sus tramos). null si no cargó. */
+    camaraActual: () => {
+        indice: number;
+        segundoCamara: number;
+    } | null;
 }
 export interface ReproductorPartidoProps {
     videos: VideoPartido[];

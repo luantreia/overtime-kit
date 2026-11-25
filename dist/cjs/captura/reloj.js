@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.etiquetaTiempoDeJuego = exports.tiempoDeJuegoEnHora = exports.segundoDeHora = exports.horaDeSegundo = exports.extraerYoutubeId = exports.leerSegundos = exports.formatearSegundos = exports.partidoACamara = exports.camaraAPartido = void 0;
+exports.cortarDesde = exports.etiquetaTiempoDeJuego = exports.tiempoDeJuegoEnHora = exports.segundoDeHora = exports.horaDeSegundo = exports.extraerYoutubeId = exports.leerSegundos = exports.formatearSegundos = exports.partidoACamara = exports.camaraAPartido = void 0;
 const tramoMasCercano = (tramos, s, clave) => {
     var _a;
     return (_a = tramos.find((t) => s >= clave(t)[0] && s <= clave(t)[1])) !== null && _a !== void 0 ? _a : tramos.reduce((m, t) => (Math.abs(clave(t)[0] - s) < Math.abs(clave(m)[0] - s) ? t : m));
@@ -105,4 +105,22 @@ function etiquetaTiempoDeJuego(registros, reloj, segundo) {
     return e ? `${e.periodo}T ${formatearSegundos(e.restante)}` : null;
 }
 exports.etiquetaTiempoDeJuego = etiquetaTiempoDeJuego;
+/**
+ * El video perdió un pedazo (se cortó la transmisión, se editó un tiempo muerto): desde el segundo
+ * de cámara `desde` en adelante, segundo de partido = segundo de cámara + `nuevoD`. Lo anterior
+ * queda como estaba. Un video sin tramos tiene uno implícito con d = 0 que se vuelve explícito.
+ * Puro: devuelve los tramos nuevos.
+ */
+function cortarDesde(video, desde, nuevoD) {
+    var _a, _b, _c;
+    const fin = Math.max((_a = video.duracion) !== null && _a !== void 0 ? _a : 0, desde + 1, ...((_b = video.tramos) !== null && _b !== void 0 ? _b : []).map((t) => t.cam[1]), 24 * 3600);
+    const tramos = ((_c = video.tramos) === null || _c === void 0 ? void 0 : _c.length) ? video.tramos : [{ cam: [0, fin], d: 0 }];
+    const antes = tramos
+        .filter((t) => t.cam[0] < desde)
+        .map((t) => ({ cam: [t.cam[0], Math.min(t.cam[1], desde)], d: t.d }))
+        .filter((t) => t.cam[1] > t.cam[0]);
+    const ultimo = Math.max(fin, ...tramos.map((t) => t.cam[1]));
+    return [...antes, { cam: [desde, ultimo], d: nuevoD }];
+}
+exports.cortarDesde = cortarDesde;
 //# sourceMappingURL=reloj.js.map

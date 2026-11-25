@@ -57,4 +57,22 @@ export declare function tiempoDeJuegoEnHora(registros: RegistroRelojJuego[], hor
 } | null;
 /** "1T 12:34" para un segundo del video, o null si no hay reloj de juego en ese momento. */
 export declare function etiquetaTiempoDeJuego(registros: RegistroRelojJuego[] | undefined, reloj: RelojEnVivo | null | undefined, segundo: number): string | null;
+/**
+ * Inicio y fin del partido en el tiempo del partido (el eje de todo). origen 'en_vivo' = lo marcó la
+ * consola; 'manual' = marcado en diferido sobre un video; 'cv' = propuesto por un modelo.
+ * `hasta` null mientras no terminó. Ver overtime/src/models/Partido/tiempoVideo.js.
+ */
+export interface VentanaPartido {
+    desde: number | null;
+    hasta: number | null;
+    origen?: 'manual' | 'cv' | 'en_vivo';
+    confirmado?: boolean;
+}
+/**
+ * El video perdió un pedazo (se cortó la transmisión, se editó un tiempo muerto): desde el segundo
+ * de cámara `desde` en adelante, segundo de partido = segundo de cámara + `nuevoD`. Lo anterior
+ * queda como estaba. Un video sin tramos tiene uno implícito con d = 0 que se vuelve explícito.
+ * Puro: devuelve los tramos nuevos.
+ */
+export declare function cortarDesde(video: VideoPartido, desde: number, nuevoD: number): TramoCamara[];
 //# sourceMappingURL=reloj.d.ts.map

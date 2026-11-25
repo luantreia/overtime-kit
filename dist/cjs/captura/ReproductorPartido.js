@@ -56,6 +56,10 @@ const ReproductorPartido = (0, react_1.forwardRef)(({ videos, className = '', on
                 (_a = player.current) === null || _a === void 0 ? void 0 : _a.seekTo(c, true);
         },
         pausar: () => { var _a; return (_a = player.current) === null || _a === void 0 ? void 0 : _a.pauseVideo(); },
+        camaraActual: () => {
+            const p = player.current;
+            return p && listo && videos[camaraRef.current] ? { indice: camaraRef.current, segundoCamara: p.getCurrentTime() } : null;
+        },
     }), [videos, listo]);
     (0, react_1.useEffect)(() => {
         if (!primerId || !contenedor.current)

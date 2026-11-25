@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { ApiCaptura, GanadorSet, RefSet, TiempoSet } from './api';
 import CamarasPartido from './CamarasPartido';
 import ReproductorPartido, { type ReproductorPartidoHandle } from './ReproductorPartido';
-import { formatearSegundos, leerSegundos, type VideoPartido } from './reloj';
+import { cortarDesde, formatearSegundos, leerSegundos, type VentanaPartido, type VideoPartido } from './reloj';
 
 /**
  * El partido entero sobre el video, como la pestaña Partido del panel de análisis: una línea de
@@ -31,6 +31,8 @@ export interface PartidoCompletoProps {
   onVideos?: (videos: VideoPartido[]) => void;
   equipos: { local: { id: string; nombre: string }; visitante: { id: string; nombre: string } };
   sets: SetDelPartido[];
+  /** Inicio y fin del partido en el eje (en vivo desde la consola, o marcado en diferido). */
+  ventana?: VentanaPartido | null;
   /** El RefSet de un set de esta lista (planillaSet o setPartido). */
   refDe: (setId: string) => RefSet;
   /** Crea el set N y devuelve su id. */
@@ -49,7 +51,7 @@ const COLOR_GANADOR: Record<GanadorSet, string> = {
 };
 
 const PartidoCompleto: React.FC<PartidoCompletoProps> = ({
-  api, videos, destinoCamaras, onVideos, equipos, sets, refDe, crearSet, onCambio, soloLectura, className = '',
+  api, videos, destinoCamaras, onVideos, equipos, sets, ventana = null, refDe, crearSet, onCambio, soloLectura, className = '',
 }) => {
   const reproductor = useRef<ReproductorPartidoHandle>(null);
   const [ahora, setAhora] = useState(0);
@@ -97,6 +99,45 @@ const PartidoCompleto: React.FC<PartidoCompletoProps> = ({
 
   const guardarTiempo = (id: string, desde: number, hasta: number) =>
     api.guardarTiempo(refDe(id), { desde, hasta, origen: 'manual', confirmado: true });
+
+  /** Un set que ubicó la consola, revisado: queda confirmado donde está. */
+  const confirmarConsola = (s: SetDelPartido) =>
+    void correr(() =>
+      api.guardarTiempo(refDe(s.id), { ...s.tiempo!, origen: 'en_vivo', confirmado: true }, { marcarAhora: false }),
+    );
+
+  /** Inicio o fin del partido en el cabezal (diferido). */
+  const marcarVentana = (cual: 'desde' | 'hasta') => {
+    const t = segundo();
+    const v = { desde: ventana?.desde ?? null, hasta: ventana?.hasta ?? null };
+    v[cual] = t;
+    if (v.desde != null && v.hasta != null && v.hasta <= v.desde) {
+      setError('El fin del partido tiene que ser después del inicio.');
+      return;
+    }
+    void correr(() => api.guardarVentana(destinoCamaras, v));
+  };
+
+  /**
+   * El video perdió un pedazo antes de este set (se cortó la transmisión, se editó): el set empieza
+   * en el segundo de video que se está viendo. Desde un poco antes de acá, la cámara actual se corre
+   * para que coincida; lo anterior no se mueve. Los sets y marcas no cambian: cambia el video.
+   */
+  const videoCortadoAca = (s: SetDelPartido) => {
+    const cam = reproductor.current?.camaraActual();
+    if (!cam || !s.tiempo) return;
+    const video = videos[cam.indice];
+    const nuevoD = s.tiempo.desde - cam.segundoCamara;
+    const tramos = cortarDesde(video, Math.max(0, cam.segundoCamara - 5), nuevoD);
+    const lista = videos.map((v, i) => (i === cam.indice ? { ...v, tramos } : v));
+    void correr(async () => {
+      const r = 'planillaId' in destinoCamaras
+        ? await api.guardarVideosPlanilla(destinoCamaras.planillaId, lista)
+        : await api.guardarVideos(destinoCamaras.partidoId, lista);
+      onVideos?.(r.videos);
+    });
+  };
+  const deConsola = (s: SetDelPartido) => s.tiempo?.origen === 'en_vivo' && !s.tiempo.confirmado;
 
   const terminarAca = () => {
     if (inicioPendiente == null) return;
@@ -180,6 +221,12 @@ const PartidoCompleto: React.FC<PartidoCompletoProps> = ({
           </p>
         </div>
         <div className="relative h-8 overflow-hidden rounded bg-slate-100">
+          {ventana?.desde != null && (
+            <div title="Antes de que empiece el partido" className="absolute top-0 h-full bg-slate-300/60" style={{ left: 0, width: pct(ventana.desde) }} />
+          )}
+          {ventana?.hasta != null && (
+            <div title="Después de que termina el partido" className="absolute top-0 h-full bg-slate-300/60" style={{ left: pct(ventana.hasta), right: 0 }} />
+          )}
           {conTiempo.map((s) => (
             <button
               key={s.id}
@@ -187,7 +234,9 @@ const PartidoCompleto: React.FC<PartidoCompletoProps> = ({
               title={`Set ${s.numeroSet}: ${formatearSegundos(s.tiempo!.desde)} → ${formatearSegundos(s.tiempo!.hasta)} · ${nombre(s.ganadorSet)}`}
               aria-label={`Ir al set ${s.numeroSet}`}
               onClick={() => reproductor.current?.irA(s.tiempo!.desde)}
-              className={`absolute top-0 h-full ${COLOR_GANADOR[s.ganadorSet]} text-2xs font-bold text-white hover:opacity-80`}
+              className={`absolute top-0 h-full ${COLOR_GANADOR[s.ganadorSet]} text-2xs font-bold text-white hover:opacity-80 ${
+                deConsola(s) ? 'border-2 border-dashed border-white opacity-70' : ''
+              }`}
               style={{ left: pct(s.tiempo!.desde), width: pct(s.tiempo!.hasta - s.tiempo!.desde) }}
             >
               {s.numeroSet}
@@ -205,6 +254,30 @@ const PartidoCompleto: React.FC<PartidoCompletoProps> = ({
           <span>0:00</span>
           <span>{formatearSegundos(ahora)}</span>
           <span>{formatearSegundos(largo)}</span>
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+          <span className="font-semibold text-slate-700">Partido:</span>
+          <span className="tabular-nums">
+            {ventana?.desde != null ? formatearSegundos(ventana.desde) : '¿inicio?'} → {ventana?.hasta != null ? formatearSegundos(ventana.hasta) : '¿fin?'}
+            {ventana?.desde != null && ventana?.hasta != null && <span className="text-muted"> ({formatearSegundos(ventana.hasta - ventana.desde)})</span>}
+          </span>
+          {ventana && (
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-2xs text-slate-600">
+              {ventana.origen === 'en_vivo' ? 'en vivo (consola)' : ventana.origen === 'cv' ? 'propuesto' : 'diferido'}
+              {!ventana.confirmado && ' · sin confirmar'}
+            </span>
+          )}
+          {!soloLectura && videos.length > 0 && (
+            <>
+              <button type="button" disabled={guardando} onClick={() => marcarVentana('desde')} className="text-brand-700 hover:underline">
+                El partido empieza acá
+              </button>
+              <button type="button" disabled={guardando} onClick={() => marcarVentana('hasta')} className="text-brand-700 hover:underline">
+                termina acá
+              </button>
+            </>
+          )}
         </div>
 
         {!soloLectura && (
@@ -254,6 +327,11 @@ const PartidoCompleto: React.FC<PartidoCompletoProps> = ({
           {ordenados.map((s) => (
             <li key={s.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2">
               <span className="w-12 font-semibold">Set {s.numeroSet}</span>
+              {deConsola(s) && (
+                <span title="Lo ubicó la consola de Overtime-Partido con la hora real: revisalo y confirmalo" className="rounded-full bg-amber-100 px-2 py-0.5 text-2xs font-semibold text-amber-800">
+                  consola
+                </span>
+              )}
 
               {editando?.id === s.id ? (
                 <form
@@ -293,6 +371,22 @@ const PartidoCompleto: React.FC<PartidoCompletoProps> = ({
                     </button>
                   ) : (
                     <span className="text-muted">sin tiempo</span>
+                  )}
+                  {!soloLectura && deConsola(s) && (
+                    <button type="button" disabled={guardando} onClick={() => confirmarConsola(s)} className="text-2xs font-semibold text-emerald-700 hover:underline">
+                      ✓ confirmar
+                    </button>
+                  )}
+                  {!soloLectura && videos.length > 0 && s.tiempo && (
+                    <button
+                      type="button"
+                      disabled={guardando}
+                      onClick={() => videoCortadoAca(s)}
+                      title="El video perdió un pedazo antes de este set: llevá el video al arranque real del set y tocá esto. Se corre el video desde acá, no el set"
+                      className="text-2xs text-brand-700 hover:underline"
+                    >
+                      el video se cortó: empieza acá
+                    </button>
                   )}
                   {!soloLectura && videos.length > 0 && (
                     <>

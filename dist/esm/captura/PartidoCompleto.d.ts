@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ApiCaptura, GanadorSet, RefSet, TiempoSet } from './api';
-import { type VideoPartido } from './reloj';
+import { type VentanaPartido, type VideoPartido } from './reloj';
 /**
  * El partido entero sobre el video, como la pestaña Partido del panel de análisis: una línea de
  * tiempo con todos los sets, y para cada uno cuándo empieza, cuándo termina y quién lo ganó.
@@ -39,6 +39,8 @@ export interface PartidoCompletoProps {
         };
     };
     sets: SetDelPartido[];
+    /** Inicio y fin del partido en el eje (en vivo desde la consola, o marcado en diferido). */
+    ventana?: VentanaPartido | null;
     /** El RefSet de un set de esta lista (planillaSet o setPartido). */
     refDe: (setId: string) => RefSet;
     /** Crea el set N y devuelve su id. */
