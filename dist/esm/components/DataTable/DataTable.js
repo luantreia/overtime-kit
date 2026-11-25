@@ -153,10 +153,10 @@ function DataTable({ columns, data, rowKey, loading = false, error, onRetry, emp
         cuerpo = _jsx("div", { className: "px-4 py-10 text-center text-sm text-slate-600", children: empty });
     }
     else if (mobile === 'cards') {
-        cuerpo = (_jsxs(_Fragment, { children: [_jsx("div", { className: "sm:hidden", children: tarjetas }), _jsx("div", { className: `hidden overflow-auto sm:block ${maxHeightClassName}`, children: tabla })] }));
+        cuerpo = (_jsxs(_Fragment, { children: [_jsx("div", { className: "sm:hidden", children: tarjetas }), _jsx("div", { className: `relative hidden overflow-auto sm:block ${maxHeightClassName}`, children: tabla })] }));
     }
     else {
-        cuerpo = _jsx("div", { className: `overflow-auto ${maxHeightClassName}`, children: tabla });
+        cuerpo = _jsx("div", { className: `relative overflow-auto ${maxHeightClassName}`, children: tabla });
     }
     const mostrarPaginador = !loading && !error && pageSize > 0 && ordenadas.length > pageSize;
     return (_jsxs("div", { className: "overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm", "aria-busy": loading || undefined, children: [toolbar ? _jsx("div", { className: "border-b border-slate-200 p-3", children: toolbar }) : null, cuerpo, mostrarPaginador ? (_jsxs("nav", { "aria-label": "Paginaci\u00F3n", className: "flex items-center justify-between gap-3 border-t border-slate-200 px-3 py-2 text-sm text-slate-600", children: [_jsxs("span", { children: [(paginaSegura - 1) * pageSize + 1, "\u2013", Math.min(paginaSegura * pageSize, ordenadas.length), " de ", ordenadas.length] }), _jsxs("div", { className: "flex gap-2", children: [_jsx("button", { type: "button", onClick: () => setPage(paginaSegura - 1), disabled: paginaSegura <= 1, className: "min-h-[36px] rounded-lg border border-slate-300 px-3 font-medium hover:bg-slate-50 disabled:opacity-40", children: "Anterior" }), _jsx("button", { type: "button", onClick: () => setPage(paginaSegura + 1), disabled: paginaSegura >= totalPaginas, className: "min-h-[36px] rounded-lg border border-slate-300 px-3 font-medium hover:bg-slate-50 disabled:opacity-40", children: "Siguiente" })] })] })) : null] }));
